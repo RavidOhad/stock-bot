@@ -1,0 +1,61 @@
+name: Trading bot
+
+on:
+  schedule:
+    # Mon–Fri. GitHub cron is UTC. 15:07 UTC ≈ 10:07 New York (winter) / 11:07 (summer)
+    - cron: "7 15 * * 1-5"
+    # 19:37 UTC ≈ 14:37 New York – risk check (stops / targets only)
+    - cron: "37 19 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "full = sell+buy, risk = sell checks only"
+        default: "full"
+        type: choice
+        options: [full, risk]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trading-bot
+  cancel-in-progress: false
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pick mode
+        id: m
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "37 19 * * 1-5" ]; then
+            echo "mode=risk" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run bot
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          ALPACA_LIVE_CONFIRM: ${{ secrets.ALPACA_LIVE_CONFIRM }}
+        run: python trader.py --mode ${{ steps.m.outputs.mode }}
+
+      - name: Save state and app data
+        if: always()
+        run: |
+          git config user.name "trading-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add state.json status.json || true
+          git diff --cached --quiet || git commit -m "bot: ${{ steps.m.outputs.mode }} run $(date -u +%F_%H:%M)"
+          git push || (git pull --rebase && git push)
