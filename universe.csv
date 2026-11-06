@@ -1,0 +1,189 @@
+ticker,name,group,target,rating
+ALB,Albemarle,US,164.73,Buy
+LMT,Lockheed Martin,US,645.48,Buy
+TT,Trane Technologies,US,529.12,Buy
+EAT,Brinker International,US,262.59,Buy
+TXRH,Texas Roadhouse,US,215.04,Buy
+ENTG,Entegris,US,179.93,Buy
+WY,Weyerhaeuser,US,29.73,Buy
+TSEM,Tower Semiconductor,IL,312.93,Strong Buy
+CAMT,Camtek,IL,178.2,Buy
+TEVA,Teva Pharmaceutical,IL,47.58,Strong Buy
+GXO,GXO Logistics,US,68.47,Strong Buy
+LQDA,Liquidia,US,51.5,Buy
+AEP,American Electric Power,US,141.5,Buy
+VFC,V.F. Corporation,US,18.83,Buy
+VST,Vistra,US,208.77,Strong Buy
+UBER,Uber Technologies,US,100.86,Buy
+MPWR,Monolithic Power Systems,US,1800,Strong Buy
+NICE,NICE,IL,132.77,Buy
+NVMI,Nova,IL,515.13,Buy
+CEVA,CEVA,IL,46.67,Strong Buy
+REGN,Regeneron,US,863.93,Buy
+IONS,Ionis Pharmaceuticals,US,83.83,Buy
+BWA,BorgWarner,US,80.93,Buy
+SMG,Scotts Miracle-Gro,US,77.17,Buy
+WMT,Walmart,US,127.35,Buy
+LIN,Linde,US,544.15,Buy
+MCHP,Microchip Technology,US,107.84,Buy
+ORA,Ormat Technologies,IL,126.33,Buy
+ENLT,Enlight Renewable Energy,IL,87.88,Buy
+PERI,Perion Network,IL,13.0,Buy
+KVYO,Klaviyo,US,26.57,Strong Buy
+HWM,Howmet Aerospace,US,324.55,Strong Buy
+LRCX,Lam Research,US,375.81,Strong Buy
+NBIX,Neurocrine Biosciences,US,206.81,Strong Buy
+NVDA,NVIDIA,US,328.95,Strong Buy
+AMZN,Amazon,US,331.43,Strong Buy
+MSFT,Microsoft,US,605.12,Strong Buy
+MNDY,monday.com,IL,108.56,Buy
+CHKP,Check Point Software,IL,147.12,Buy
+WIX,Wix.com,IL,79.65,Buy
+META,Meta Platforms,US,848.38,Strong Buy
+AVGO,Broadcom,US,530.14,Strong Buy
+GOOGL,Alphabet,US,406.55,Strong Buy
+ANET,Arista Networks,US,243.59,Strong Buy
+CRWD,CrowdStrike,US,247.25,Buy
+V,Visa,US,422.77,Strong Buy
+AMD,Advanced Micro Devices,US,640.21,Strong Buy
+GLBE,Global-E Online,IL,51.15,Strong Buy
+ITRN,Ituran,IL,74.5,Buy
+GILT,Gilat Satellite Networks,IL,19.2,Strong Buy
+ZETA,Zeta Global,US,37.86,Strong Buy
+FOXA,Fox Corporation,US,78.14,Buy
+SMTC,Semtech,US,217.07,Strong Buy
+SATS,EchoStar,US,130.2,Strong Buy
+EXTR,Extreme Networks,US,33.5,Strong Buy
+DOCN,DigitalOcean,US,177.2,Buy
+WM,Waste Management,US,253.52,Buy
+NYAX,Nayax,IL,75.66,Buy
+KMDA,Kamada,IL,13.5,Strong Buy
+BWAY,BrainsWay,IL,19.27,Strong Buy
+DDOG,Datadog,US,290.38,Strong Buy
+BYD,Boyd Gaming,US,93.94,Buy
+CRWV,CoreWeave,US,140.58,Buy
+GPN,Global Payments,US,105.34,Buy
+MTCH,Match Group,US,41.88,Buy
+PINS,Pinterest,US,29.05,Buy
+REZI,Resideo Technologies,US,31.4,Buy
+CLBT,Cellebrite,IL,15.36,Strong Buy
+CGNT,Cognyte Software,IL,12.33,Buy
+RDWR,Radware,IL,30.5,Buy
+NOC,Northrop Grumman,US,619.08,Buy
+AKAM,Akamai,US,158.87,Buy
+BLK,BlackRock,US,1337.0,Strong Buy
+TKO,TKO Group,US,231.63,Buy
+VG,Venture Global,US,16.89,Buy
+BIIB,Biogen,US,243.98,Buy
+ARHS,Arhaus,US,10.5,Buy
+SMWB,Similarweb,IL,10.83,Buy
+ALLT,Allot,IL,13.48,Strong Buy
+CLH,Clean Harbors,US,361,Buy
+ISRG,Intuitive Surgical,US,478.53,Buy
+ZM,Zoom Communications,US,118.24,Buy
+APLD,Applied Digital,US,64.27,Strong Buy
+DLR,Digital Realty,US,223.28,Strong Buy
+HOOD,Robinhood,US,134.38,Buy
+PLD,Prologis,US,155.85,Buy
+COST,Costco,US,1066,Buy
+EQIX,Equinix,US,1233,Buy
+CGEN,Compugen,IL,4.6,Strong Buy
+XYZ,Block,US,98.1,Buy
+HAL,Halliburton,US,43.4,Buy
+AVAV,AeroVironment,US,216.16,Buy
+CEG,Constellation Energy,US,337.57,Buy
+TLN,Talen Energy,US,457.94,Buy
+DKS,Dick's Sporting Goods,US,161.22,Buy
+ONON,On Holding,US,43.98,Buy
+ROST,Ross Stores,US,268.61,Buy
+MDWD,MediWound,IL,29.83,Strong Buy
+TATT,TAT Technologies,IL,60.71,Strong Buy
+MRVL,Marvell Technology,US,339.36,Strong Buy
+BKNG,Booking Holdings,US,233.83,Buy
+GEV,GE Vernova,US,1224,Buy
+CRM,Salesforce,US,285.68,Buy
+FSLR,First Solar,US,273.8,Buy
+BAC,Bank of America,US,63.45,Strong Buy
+TMUS,T-Mobile US,US,236.84,Buy
+PGY,Pagaya Technologies,IL,28.82,Strong Buy
+ETOR,eToro,IL,44.5,Buy
+SSYS,Stratasys,IL,12,Buy
+TER,Teradyne,US,446.47,Buy
+NFLX,Netflix,US,84.83,Buy
+ORCL,Oracle,US,236.54,Buy
+PANW,Palo Alto Networks,US,398.52,Buy
+KLAC,KLA,US,232.38,Buy
+ETN,Eaton,US,485.47,Buy
+MU,Micron Technology,US,1562,Strong Buy
+AAPL,Apple,US,328.35,Buy
+AMAT,Applied Materials,US,627.83,Strong Buy
+APH,Amphenol,US,102.97,Strong Buy
+ALLE,Allegion,US,178.0,Buy
+NTRA,Natera,US,411.39,Strong Buy
+GH,Guardant Health,US,201.64,Strong Buy
+DIOD,Diodes,US,153.33,Strong Buy
+VLY,Valley National Bancorp,US,16.5,Buy
+EGO,Eldorado Gold,US,46.33,Buy
+RSI,Rush Street Interactive,US,34.83,Strong Buy
+URGN,UroGen Pharma,IL,60.0,Strong Buy
+MTSI,MACOM Technology,US,390.33,Buy
+COHR,Coherent,US,396.0,Buy
+NTNX,Nutanix,US,79.27,Buy
+LKQ,LKQ,US,25.79,Buy
+FE,FirstEnergy,US,50.5,Buy
+CACI,CACI International,US,727.36,Buy
+LITE,Lumentum,US,1166.0,Buy
+VLN,Valens Semiconductor,IL,4.0,Buy
+MELI,MercadoLibre,US,2274,Buy
+FERG,Ferguson Enterprises,US,283.23,Buy
+LEU,Centrus Energy,US,221.54,Buy
+TRMB,Trimble,US,79.4,Strong Buy
+FITB,Fifth Third Bancorp,US,61.39,Buy
+PPL,PPL Corporation,US,40.13,Buy
+EVRG,Evergy,US,90.82,Buy
+CP,Canadian Pacific Kansas City,US,99.42,Buy
+PYPD,PolyPid,IL,11.75,Strong Buy
+ARBE,Arbe Robotics,IL,2.38,Buy
+BA,Boeing,US,267.22,Buy
+CHE,Chemed,US,571.6,Buy
+SIMO,Silicon Motion,US,369.7,Strong Buy
+WDC,Western Digital,US,610.04,Buy
+DASH,DoorDash,US,257.37,Buy
+NVT,nVent Electric,US,203.29,Strong Buy
+INCY,Incyte,US,129.54,Buy
+INTC,Intel,US,117.71,Buy
+HLT,Hilton,US,353.81,Buy
+PLTR,Palantir,US,208.97,Buy
+RBRK,Rubrik,US,121.26,Strong Buy
+WTFC,Wintrust Financial,US,172.69,Buy
+CVX,Chevron,US,232.5,Buy
+LLY,Eli Lilly,US,1404,Buy
+SPOT,Spotify,US,635.91,Buy
+GS,Goldman Sachs,US,1031,Buy
+APP,AppLovin,US,471.69,Buy
+JPM,JPMorgan Chase,US,372.26,Buy
+SHOP,Shopify,US,176.35,Buy
+AXON,Axon Enterprise,US,680.37,Buy
+MHK,Mohawk Industries,US,136.47,Buy
+HTO,H2O America,US,67,Buy
+NDAQ,Nasdaq Inc,US,114.25,Buy
+FORM,FormFactor,US,153.89,Buy
+LHX,L3Harris Technologies,US,323.67,Buy
+SN,SharkNinja,US,210.9,Strong Buy
+AU,AngloGold Ashanti,US,116.38,Buy
+AON,Aon,US,354.21,Buy
+BE,Bloom Energy,US,284.77,Buy
+NET,Cloudflare,US,343.42,Buy
+ON,ON Semiconductor,US,101.63,Buy
+OKLO,Oklo,US,66.8,Buy
+AAOI,Applied Optoelectronics,US,160.0,Buy
+ALAB,Astera Labs,US,382.68,Buy
+CPNG,Coupang,US,23.39,Buy
+EW,Edwards Lifesciences,US,101.39,Buy
+INSM,Insmed,US,196.14,Strong Buy
+CNM,Core & Main,US,54.54,Buy
+SUPN,Supernus Pharmaceuticals,US,60.5,Buy
+W,Wayfair,US,122.69,Buy
+ZBRA,Zebra Technologies,US,414.85,Buy
+BALL,Ball Corporation,US,71.54,Buy
+TRNS,Transcat,US,104.33,Buy

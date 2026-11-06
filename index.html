@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<title>תיק המניות שלי</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#262c36;--txt:#e6edf3;--mut:#8b949e;--up:#3fb950;--dn:#f85149;--acc:#58a6ff;--warn:#d29922}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Rubik,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+body{padding:calc(env(safe-area-inset-top) + 8px) 14px calc(env(safe-area-inset-bottom) + 78px)}
+h1{font-size:19px;margin:6px 0 2px}
+.sub{color:var(--mut);font-size:12.5px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--mut)}
+.pill.ok{color:var(--up);border-color:#23432c}.pill.bad{color:var(--dn);border-color:#4d2425}.pill.warn{color:var(--warn);border-color:#4a3b16}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.big{font-size:34px;font-weight:700;letter-spacing:-.5px;direction:ltr;text-align:right}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.kpi{background:#0f141a;border-radius:12px;padding:9px 8px;text-align:center}
+.kpi b{display:block;font-size:16px;direction:ltr}
+.kpi span{font-size:11.5px;color:var(--mut)}
+.up{color:var(--up)}.dn{color:var(--dn)}.mut{color:var(--mut)}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.pos{padding:11px 0;border-bottom:1px solid var(--line)}
+.pos:last-child{border-bottom:0}
+.sym{font-weight:700;font-size:15.5px}
+.tag{font-size:10.5px;padding:1px 6px;border-radius:6px;background:#1f2a37;color:var(--acc);margin-inline-start:6px}
+.small{font-size:12px;color:var(--mut)}
+.bar{height:6px;background:#0f141a;border-radius:6px;overflow:hidden;margin-top:7px;position:relative}
+.bar i{position:absolute;top:0;bottom:0;border-radius:6px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#0d1117ee;backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;padding:6px 6px calc(env(safe-area-inset-bottom) + 6px)}
+nav button{flex:1;background:none;border:0;color:var(--mut);font:inherit;font-size:12px;padding:6px 0;border-radius:10px}
+nav button.on{color:var(--txt);background:var(--card)}
+nav button .ic{display:block;font-size:19px;line-height:1.2}
+.view{display:none}.view.on{display:block}
+.tr{padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:10px}
+.tr:last-child{border-bottom:0}
+.side{width:44px;flex:none;text-align:center;font-size:12px;font-weight:700;border-radius:8px;padding:5px 0;height:fit-content}
+.side.buy{background:#12301b;color:var(--up)}.side.sell{background:#3a1717;color:var(--dn)}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input{width:100%;background:#0f141a;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px;font-size:15px;direction:ltr}
+.btn{background:var(--acc);color:#04111f;border:0;border-radius:12px;padding:12px 14px;font-weight:700;font-size:15px;width:100%;margin-top:12px}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--txt)}
+.btn.red{background:none;border:1px solid #4d2425;color:var(--dn)}
+.mini{background:none;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:4px 9px;font-size:12px}
+ul.rules{padding-inline-start:18px;margin:6px 0;line-height:1.75;font-size:14px}
+.empty{color:var(--mut);text-align:center;padding:26px 6px;font-size:14px;line-height:1.6}
+svg text{font-family:inherit}
+.err{background:#3a1717;border:1px solid #4d2425;color:#ffb3ae;padding:10px 12px;border-radius:12px;font-size:13px;margin-bottom:12px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-inline-end:5px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="row">
+  <div><h1>תיק המניות שלי</h1><div class="sub" id="updated">טוען…</div></div>
+  <button class="mini" id="refresh">↻ רענון</button>
+</div>
+<div class="pills" id="pills"></div>
+<div id="error"></div>
+
+<section class="view on" id="v-home">
+  <div class="card">
+    <div class="small">שווי התיק</div>
+    <div class="big" id="equity">—</div>
+    <div class="kpis">
+      <div class="kpi"><b id="k-total">—</b><span>מאז ההתחלה</span></div>
+      <div class="kpi"><b id="k-spy">—</b><span>S&amp;P 500 באותה תקופה</span></div>
+      <div class="kpi"><b id="k-day">—</b><span>היום</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row"><b>הבוט מול השוק</b><span class="small" id="evalinfo"></span></div>
+    <div id="chart"></div>
+    <div class="legend"><span><i style="background:var(--acc)"></i>התיק שלי</span><span><i style="background:#8b949e"></i>S&amp;P 500 (SPY)</span></div>
+  </div>
+  <div class="card">
+    <div class="row"><b>מזומן פנוי</b><span class="ltr" id="cash">—</span></div>
+    <div class="row" style="margin-top:6px"><b>מספר מניות בתיק</b><span id="npos">—</span></div>
+  </div>
+  <div class="card"><b>מה הבוט עשה לאחרונה</b><div id="lastacts"></div></div>
+</section>
+
+<section class="view" id="v-pos"><div class="card" id="positions"></div></section>
+<section class="view" id="v-trades"><div class="card" id="trades"></div></section>
+<section class="view" id="v-watch">
+  <div class="card"><b>המועמדות הבאות לקנייה</b><div class="small" style="margin:4px 0 6px">לפי ציון הקנייה (0–100). הבוט קונה רק מציון 60 ומעלה, כשמתפנה מקום בתיק.</div><div id="watch"></div></div>
+</section>
+<section class="view" id="v-set">
+  <div class="card"><b>איך הבוט מחליט</b><ul class="rules" id="rules"></ul></div>
+  <div class="card">
+    <b>חיבור חי ל-Alpaca (לא חובה)</b>
+    <div class="small" style="margin-top:4px;line-height:1.6">בלי זה האפליקציה מציגה את מה שהבוט שמר בהרצה האחרונה (פעמיים ביום). עם המפתחות, היא מושכת מחירים חיים ומאפשרת למכור מניה ידנית. המפתחות נשמרים רק בטלפון הזה. השתמש רק במפתחות של חשבון ה-Paper.</div>
+    <label>API Key ID</label><input id="kid" autocomplete="off" spellcheck="false" placeholder="PK...">
+    <label>Secret Key</label><input id="ksec" type="password" autocomplete="off" spellcheck="false">
+    <button class="btn" id="savekeys">שמור והתחבר</button>
+    <button class="btn ghost" id="clearkeys">מחק מפתחות מהטלפון</button>
+    <div class="small" id="livestate" style="margin-top:8px"></div>
+  </div>
+  <div class="card small" style="line-height:1.6">זהו כלי ניסוי בחשבון מדומה (Paper), לא ייעוץ השקעות. מעבר לכסף אמיתי נעשה רק אחרי בדיקה של חודשיים, ורק אם תחליט על כך.</div>
+</section>
+
+<nav>
+  <button data-v="home" class="on"><span class="ic">◎</span>סיכום</button>
+  <button data-v="pos"><span class="ic">▤</span>תיק</button>
+  <button data-v="trades"><span class="ic">⇄</span>עסקאות</button>
+  <button data-v="watch"><span class="ic">☆</span>מעקב</button>
+  <button data-v="set"><span class="ic">⚙</span>הגדרות</button>
+</nav>
+
+<script>
+const $ = id => document.getElementById(id);
+const usd = (v, d=2) => v==null||isNaN(v) ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct = (v, d=1) => v==null||isNaN(v) ? '—' : (v>0?'+':'') + (v*100).toFixed(d) + '%';
+const cls = v => v>0 ? 'up' : v<0 ? 'dn' : 'mut';
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}} };
+let S = null, live = null;
+
+// ---- navigation
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x===b));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + b.dataset.v));
+  window.scrollTo(0,0);
+});
+
+// ---- data sources: raw GitHub (freshest) → local copy
+function rawUrl(){
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo = location.pathname.split('/').filter(Boolean)[0];
+  return m && repo ? `https://raw.githubusercontent.com/${m[1]}/${repo}/main/status.json` : null;
+}
+async function loadStatus(){
+  const urls = [rawUrl(), 'status.json'].filter(Boolean);
+  for (const u of urls){
+    try { const r = await fetch(u + '?t=' + Date.now(), {cache:'no-store'}); if (r.ok) return await r.json(); } catch(e){}
+  }
+  throw new Error('no status');
+}
+
+// ---- optional live Alpaca
+function keys(){ const k=store.get('apk'), s=store.get('aps'); return k&&s ? {k,s} : null; }
+function base(){ return (S && S.mode==='live') ? 'https://api.alpaca.markets' : 'https://paper-api.alpaca.markets'; }
+async function alp(path, opt={}){
+  const k = keys(); if(!k) throw new Error('no keys');
+  const r = await fetch(base()+path, {...opt, headers:{'APCA-API-KEY-ID':k.k,'APCA-API-SECRET-KEY':k.s,'Content-Type':'application/json'}});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const t = await r.text(); return t ? JSON.parse(t) : {};
+}
+async function loadLive(){
+  if(!keys()) { live=null; $('livestate').textContent='לא מחובר – מוצגים נתוני הבוט.'; return; }
+  try{
+    const [a,p] = await Promise.all([alp('/v2/account'), alp('/v2/positions')]);
+    live = {a,p}; $('livestate').innerHTML = '<span class="up">מחובר ✓</span> נתונים חיים מ-Alpaca.';
+  }catch(e){
+    live = null;
+    $('livestate').innerHTML = '<span class="dn">החיבור החי נכשל</span> ('+esc(e.message)+'). ייתכן שהדפדפן חוסם גישה ישירה ל-Alpaca; האפליקציה ממשיכה לעבוד עם נתוני הבוט.';
+  }
+}
+
+// ---- render
+function render(){
+  if(!S) return;
+  const acct = live ? {equity:+live.a.equity, cash:+live.a.cash, last_equity:+live.a.last_equity} : S.account;
+  let positions = S.positions;
+  if (live){
+    const meta = Object.fromEntries(S.positions.map(p=>[p.symbol,p]));
+    positions = live.p.map(p => ({...(meta[p.symbol]||{name:p.symbol}), symbol:p.symbol, qty:+p.qty, avg:+p.avg_entry_price, price:+p.current_price,
+      value:+p.market_value, pl:+p.unrealized_pl, pl_pct:+p.unrealized_plpc, day_pct:+p.change_today})).sort((a,b)=>b.value-a.value);
+  }
+  const st = S.start||{};
+  const total = st.equity ? acct.equity/st.equity-1 : 0;
+  const day = acct.last_equity ? acct.equity/acct.last_equity-1 : 0;
+
+  const when = new Date(S.generated_at);
+  $('updated').textContent = (live ? 'נתונים חיים · ' : '') + 'עדכון בוט: ' + when.toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'});
+  const pills = [];
+  pills.push(S.mode==='live' ? '<span class="pill bad">כסף אמיתי</span>' : '<span class="pill ok">חשבון מדומה (Paper)</span>');
+  pills.push(S.paused ? '<span class="pill warn">הבוט מושהה</span>' : '<span class="pill ok">הבוט פעיל</span>');
+  pills.push(S.market_open ? '<span class="pill ok">השוק פתוח</span>' : '<span class="pill">השוק סגור</span>');
+  $('pills').innerHTML = pills.join('');
+
+  $('equity').textContent = usd(acct.equity);
+  $('k-total').textContent = pct(total); $('k-total').className = cls(total);
+  $('k-spy').textContent = pct(S.perf.spy); $('k-spy').className = cls(S.perf.spy);
+  $('k-day').textContent = pct(day); $('k-day').className = cls(day);
+  $('cash').textContent = usd(acct.cash);
+  $('npos').textContent = positions.length;
+
+  if (S.eval_date){
+    const left = Math.ceil((new Date(S.eval_date) - new Date())/864e5);
+    $('evalinfo').textContent = left>0 ? `עוד ${left} ימים לבדיקת החודשיים` : 'הגיע זמן הבדיקה!';
+  }
+  chart(S.history||[]);
+
+  // last actions
+  const t0 = (S.trades||[]).slice(0,5);
+  $('lastacts').innerHTML = t0.length ? t0.map(tradeRow).join('') : '<div class="empty">עדיין אין עסקאות. הקנייה הראשונית תתבצע בהרצה הראשונה כשהשוק בניו יורק פתוח (16:30–23:00 שעון ישראל).</div>';
+
+  // positions
+  $('positions').innerHTML = positions.length ? positions.map(p => {
+    const stopGap = p.stop && p.price ? (p.price - p.stop)/p.price : null;
+    const tgtUp = p.target && p.price ? p.target/p.price - 1 : null;
+    const sell = live ? `<button class="mini" data-close="${esc(p.symbol)}">מכור</button>` : '';
+    return `<div class="pos">
+      <div class="row"><div><span class="sym ltr">${esc(p.symbol)}</span>${p.group==='IL'?'<span class="tag">ישראלית</span>':''}<div class="small">${esc(p.name)}</div></div>
+        <div style="text-align:left"><div class="ltr">${usd(p.value)}</div><div class="${cls(p.pl_pct)} ltr" style="font-size:13px">${pct(p.pl_pct)} (${usd(p.pl)})</div></div></div>
+      <div class="row small" style="margin-top:6px"><span>קנייה <span class="ltr">${usd(p.avg)}</span> · עכשיו <span class="ltr">${usd(p.price)}</span></span><span>היום <span class="${cls(p.day_pct)} ltr">${pct(p.day_pct)}</span></span></div>
+      <div class="row small" style="margin-top:3px"><span>סטופ <span class="ltr">${usd(p.stop)}</span>${stopGap!=null?` (<span class="ltr">${(stopGap*100).toFixed(1)}%</span> מתחת)`:''}</span><span>יעד <span class="ltr">${usd(p.target)}</span>${tgtUp!=null?` (<span class="ltr">${pct(tgtUp,0)}</span>)`:''}</span></div>
+      ${p.score!=null?`<div class="row small" style="margin-top:3px"><span>ציון קנייה ${Math.round(p.score)}${p.since?` · בתיק מ-${p.since}`:''}</span>${sell}</div>`:''}
+    </div>`;}).join('') : '<div class="empty">התיק עדיין ריק.</div>';
+  document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => closePos(b.dataset.close, b));
+
+  // trades
+  $('trades').innerHTML = (S.trades||[]).length ? S.trades.map(tradeRow).join('') : '<div class="empty">אין עסקאות עדיין.</div>';
+
+  // watchlist
+  $('watch').innerHTML = (S.watchlist||[]).map(w => `<div class="pos"><div class="row"><div><span class="sym ltr">${esc(w.symbol)}</span>${w.group==='IL'?'<span class="tag">ישראלית</span>':''}<div class="small">${esc(w.name)}</div></div>
+     <div style="text-align:left"><b>${Math.round(w.score)}</b><div class="small ltr">${usd(w.price)} → ${usd(w.target)}</div></div></div>
+     <div class="bar"><i style="right:0;width:${Math.max(2,Math.min(100,w.score))}%;background:${w.score>=60?'var(--up)':'var(--warn)'}"></i></div></div>`).join('') || '<div class="empty">אין נתונים.</div>';
+
+  // rules
+  const r = S.rules||{};
+  $('rules').innerHTML = [
+    `בונה תיק של עד <b>${r.max_positions}</b> מניות מרשימת מניות ה-Buy, בחלוקה שווה, ומשאיר <b>${Math.round((r.cash_reserve||0)*100)}%</b> במזומן.`,
+    `קונה רק מניה עם ציון קנייה <b>${r.min_buy_score}</b> ומעלה (מגמה, מומנטום, תיקון בריא, תנודתיות ופער ליעד האנליסטים). בקנייה הראשונית לפחות ${r.min_israeli_in_initial} ישראליות אם יש מתאימות.`,
+    `<b>סטופ-לוס:</b> מוכר אם המניה ירדה ${Math.round(r.stop_loss*100)}% ממחיר הקנייה.`,
+    `<b>סטופ נגרר:</b> מוכר אם המניה ירדה ${Math.round(r.trailing_stop*100)}% מהשיא שלה מאז הקנייה (שומר על רווחים).`,
+    `<b>מימוש רווח:</b> מוכר כשהמחיר מגיע ליעד הממוצע של האנליסטים.`,
+    `מוכר אם ציון הקנייה צונח מתחת ל-${r.sell_score_below}, ולא חוזר לאותה מניה ${r.cooldown_days} ימים.`,
+    `לכל היותר ${r.max_new_buys_per_day} קניות חדשות ביום. רץ פעמיים ביום מסחר: ~17:05 (קנייה+מכירה) ו-~21:35 (בדיקת סטופים) שעון ישראל.`
+  ].map(x=>`<li>${x}</li>`).join('');
+}
+function tradeRow(t){
+  return `<div class="tr"><div class="side ${t.side}">${t.side==='buy'?'קנייה':'מכירה'}</div>
+    <div style="flex:1"><div class="row"><span><span class="sym ltr">${esc(t.symbol)}</span> <span class="small">${esc(t.name)}</span></span><span class="ltr">${usd(t.amount,0)}</span></div>
+    <div class="small">${esc(t.reason)}</div><div class="small ltr" style="text-align:right">${esc(t.date)} ${esc(t.time)} UTC · @ ${usd(t.price)}</div></div></div>`;
+}
+function chart(h){
+  const el = $('chart');
+  if (!h.length || h.length < 2){ el.innerHTML = '<div class="empty">הגרף יופיע אחרי יומיים של מסחר.</div>'; return; }
+  const W=340,H=150,P=6, e0=h[0].eq, s0=h.find(x=>x.spy)?.spy;
+  const a = h.map(x=>x.eq/e0-1), b = h.map(x=>s0&&x.spy? x.spy/s0-1 : null);
+  const all = a.concat(b.filter(v=>v!=null), [0]);
+  let lo=Math.min(...all), hi=Math.max(...all); if(hi-lo<0.01){hi+=0.005;lo-=0.005}
+  const X=i=>P+i*(W-2*P)/(h.length-1), Y=v=>H-P-(v-lo)/(hi-lo)*(H-2*P);
+  const path=arr=>arr.map((v,i)=>v==null?'':`${i&&arr[i-1]!=null?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;margin-top:8px;direction:ltr">
+    <line x1="${P}" x2="${W-P}" y1="${Y(0)}" y2="${Y(0)}" stroke="#30363d" stroke-dasharray="3 4"/>
+    <path d="${path(b)}" fill="none" stroke="#8b949e" stroke-width="1.8"/>
+    <path d="${path(a)}" fill="none" stroke="#58a6ff" stroke-width="2.6" stroke-linejoin="round"/>
+    <text x="${P}" y="12" text-anchor="start" font-size="10" fill="#8b949e">${pct(hi)}</text>
+    <text x="${W-P}" y="${H-2}" text-anchor="end" font-size="10" fill="#8b949e">${pct(lo)}</text>
+    <text x="${W/2}" y="${H-2}" text-anchor="middle" font-size="10" fill="#8b949e">מאז ${h[0].d}</text></svg>`;
+}
+async function closePos(sym, btn){
+  if (btn.dataset.confirm !== '1'){ btn.dataset.confirm='1'; btn.textContent='בטוח? לחץ שוב'; btn.style.color='var(--dn)'; setTimeout(()=>{btn.dataset.confirm='';btn.textContent='מכור';btn.style.color=''},4000); return; }
+  btn.textContent='שולח…';
+  try{ await alp('/v2/positions/'+encodeURIComponent(sym), {method:'DELETE'}); btn.textContent='נשלח ✓'; setTimeout(refresh, 2500); }
+  catch(e){ btn.textContent='נכשל'; }
+}
+
+// ---- settings
+$('savekeys').onclick = async () => { const k=$('kid').value.trim(), s=$('ksec').value.trim(); if(!k||!s) return; store.set('apk',k); store.set('aps',s); $('ksec').value=''; await refresh(); };
+$('clearkeys').onclick = async () => { store.del('apk'); store.del('aps'); $('kid').value=''; live=null; await refresh(); };
+if (store.get('apk')) $('kid').value = store.get('apk');
+
+async function refresh(){
+  $('error').innerHTML='';
+  try { S = await loadStatus(); }
+  catch(e){ $('error').innerHTML = '<div class="err">עדיין אין נתונים מהבוט. אחרי ההרצה הראשונה (ידנית או בשעה 17:05) הם יופיעו כאן.</div>'; $('updated').textContent=''; return; }
+  await loadLive();
+  render();
+}
+$('refresh').onclick = refresh;
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+refresh();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
