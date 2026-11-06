@@ -2,9 +2,7 @@ name: Trading bot
 
 on:
   schedule:
-    # Mon–Fri. GitHub cron is UTC. 15:07 UTC ≈ 10:07 New York (winter) / 11:07 (summer)
     - cron: "7 15 * * 1-5"
-    # 19:37 UTC ≈ 14:37 New York – risk check (stops / targets only)
     - cron: "37 19 * * 1-5"
   workflow_dispatch:
     inputs:
