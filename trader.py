@@ -353,17 +353,77 @@ def build_status(api, cfg, state, uni, scored, clock, now):
     return status
 
 
+INVISIBLE = "​‌‍‎‏‪‫‬‭‮⁦⁧⁨⁩﻿ "
+
+
+def clean_key(v):
+    """Remove spaces, line breaks and invisible characters that sneak in when copying on a phone."""
+    v = "".join(ch for ch in (v or "") if not ch.isspace() and ch not in INVISIBLE)
+    for junk in ("Key:", "KeyID:", "Secret:", "API Key ID:", "Secret Key:"):
+        if v.lower().startswith(junk.lower().replace(" ", "")):
+            v = v[len(junk.replace(" ", "")):]
+    return v.strip("\"'")
+
+
+def fail(msg_he, msg_en):
+    # ::error:: makes the message appear on the run's Summary page
+    print(f"::error title=בעיה במפתחות Alpaca::{msg_he}")
+    print(msg_en)
+    sys.exit(1)
+
+
+def check_keys(key, secret, base):
+    raw_k, raw_s = os.environ.get("ALPACA_KEY_ID", ""), os.environ.get("ALPACA_SECRET_KEY", "")
+    print(f"Key ID: length {len(key)}, starts with '{key[:2]}' | Secret: length {len(secret)}"
+          f"{' | cleaned invisible characters/spaces' if (raw_k != key or raw_s != secret) else ''}")
+    if not key or not secret:
+        fail("חסר אחד הסודות ALPACA_KEY_ID או ALPACA_SECRET_KEY ב-Settings ← Secrets ← Actions (בדוק שהשמות מדויקים).",
+             "Missing ALPACA_KEY_ID / ALPACA_SECRET_KEY secrets.")
+    if len(key) > len(secret) or (secret[:2] in ("PK", "AK", "CK") and key[:2] not in ("PK", "AK", "CK")):
+        fail("נראה שהמפתחות הפוכים: ב-ALPACA_KEY_ID צריך להיות הקצר (מתחיל ב-PK), וב-ALPACA_SECRET_KEY הארוך.",
+             "Keys look swapped.")
+    if any(ord(c) > 127 for c in key + secret):
+        fail("במפתחות יש תווים שאינם אנגליים. העתק אותם שוב מאתר Alpaca והדבק מחדש.", "Non-ASCII characters in keys.")
+
+    def try_base(b):
+        r = urllib.request.Request(b + "/v2/account", headers={
+            "APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret, "User-Agent": "buy-rated-bot/1.0"})
+        try:
+            with urllib.request.urlopen(r, timeout=30) as resp:
+                return resp.status
+        except urllib.error.HTTPError as e:
+            return e.code
+        except Exception:
+            return None
+
+    code = try_base(base)
+    print(f"Key check on {base}: HTTP {code}")
+    if code == 200:
+        return
+    if code in (401, 403):
+        other = LIVE if base == PAPER else PAPER
+        if try_base(other) == 200:
+            if base == PAPER:
+                fail("אלה מפתחות של חשבון הכסף האמיתי (Live), לא של Paper. באתר Alpaca עבור לחשבון Paper (למעלה משמאל), "
+                     "צור מפתחות חדשים שם (Key מתחיל ב-PK) ועדכן את שני הסודות.", "These are LIVE keys, not PAPER keys.")
+            fail("אלה מפתחות Paper אבל הבוט מוגדר ל-Live.", "Paper keys used in live mode.")
+        hint = "" if key.startswith("PK") else f" (ה-Key ID שלך מתחיל ב-'{key[:2]}' ולא ב-PK.)"
+        fail("Alpaca לא מזהה את המפתחות." + hint + " צור זוג מפתחות חדש בחשבון Paper (Regenerate), "
+             "ועדכן את שני הסודות יחד: ALPACA_KEY_ID = המפתח הקצר שמתחיל ב-PK, ALPACA_SECRET_KEY = הארוך. "
+             "כל Regenerate מבטל את הזוג הקודם.", f"Keys not authorized (HTTP {code}).")
+    fail(f"לא הצלחתי להתחבר ל-Alpaca (קוד {code}). נסה להריץ שוב בעוד כמה דקות.", f"Connection problem: {code}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["full", "risk"], default="full")
     a = ap.parse_args()
-    key, secret = os.environ.get("ALPACA_KEY_ID", "").strip(), os.environ.get("ALPACA_SECRET_KEY", "").strip()
-    if not key or not secret:
-        sys.exit("Missing ALPACA_KEY_ID / ALPACA_SECRET_KEY (add them as GitHub Secrets).")
+    key, secret = clean_key(os.environ.get("ALPACA_KEY_ID")), clean_key(os.environ.get("ALPACA_SECRET_KEY"))
     cfg = load_json(CONFIG, {})
     live = cfg.get("mode") == "live" and os.environ.get("ALPACA_LIVE_CONFIRM") == "I-UNDERSTAND"
     if cfg.get("mode") == "live" and not live:
         log("config says live but ALPACA_LIVE_CONFIRM is not set – staying on PAPER.")
+    check_keys(key, secret, LIVE if live else PAPER)
     api = Alpaca(LIVE if live else PAPER, key, secret)
     log(f"=== {a.mode} run on {'LIVE' if live else 'PAPER'} ===")
     state = load_json(STATE, {})
