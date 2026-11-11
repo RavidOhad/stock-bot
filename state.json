@@ -5,24 +5,24 @@
   "spy": 747.96
  },
  "peaks": {
-  "AIG": 82.32,
-  "AMGN": 466.0,
+  "AIG": 82.85,
+  "AMGN": 467.7,
   "BAC": 50.75,
   "BR": 192.96,
-  "COP": 135.99,
-  "DIS": 119.21,
-  "GS": 917.21,
+  "COP": 137.86,
+  "DIS": 119.54,
+  "GS": 926.81,
   "HD": 351.95,
   "JNJ": 281.625,
-  "JPM": 342.79,
+  "JPM": 343.4,
   "MDT": 101.59,
   "MMM": 189.37,
-  "MO": 76.34,
+  "MO": 77.2,
   "MSFT": 541.74,
   "PG": 168.66,
   "SAP": 236.1,
-  "SLB": 50.05,
-  "TXN": 309.6,
+  "SLB": 50.96,
+  "TXN": 309.81,
   "USB": 60.77,
   "WFC": 86.1
  },
@@ -147,16 +147,17 @@
   },
   {
    "d": "2026-11-11",
-   "eq": 107019.46,
-   "spy": 756.98
+   "eq": 107170.84,
+   "spy": 759.8
   }
  ],
  "last_run": {
-  "at": "2026-11-11T14:39+00:00",
+  "at": "2026-11-11T21:51+00:00",
   "mode": "full",
   "log": [
    "=== full run on PAPER ===",
-   "Account equity $107,019.46 cash $80,456.73 | positions 20 | market open: True"
+   "Account equity $107,170.84 cash $80,456.73 | positions 20 | market open: False",
+   "Market closed – no trades, snapshot only."
   ]
  }
 }
