@@ -13,7 +13,7 @@
   "DIS": 119.85,
   "GS": 926.81,
   "HD": 351.95,
-  "JNJ": 283.442,
+  "JNJ": 283.8505,
   "JPM": 343.4,
   "MDT": 101.61,
   "MMM": 189.37,
@@ -22,7 +22,7 @@
   "PG": 168.66,
   "SAP": 236.1,
   "SLB": 50.96,
-  "TXN": 312.89,
+  "TXN": 313.58,
   "USB": 60.77,
   "WFC": 86.1
  },
@@ -154,14 +154,19 @@
    "d": "2026-11-12",
    "eq": 107142.67,
    "spy": 757.16
+  },
+  {
+   "d": "2026-11-13",
+   "eq": 107165.42,
+   "spy": 757.16
   }
  ],
  "last_run": {
-  "at": "2026-11-12T21:48+00:00",
-  "mode": "full",
+  "at": "2026-11-13T00:39+00:00",
+  "mode": "risk",
   "log": [
-   "=== full run on PAPER ===",
-   "Account equity $107,142.67 cash $80,456.73 | positions 20 | market open: False",
+   "=== risk run on PAPER ===",
+   "Account equity $107,165.42 cash $80,456.73 | positions 20 | market open: False",
    "Market closed – no trades, snapshot only."
   ]
  }
