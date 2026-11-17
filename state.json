@@ -17,9 +17,9 @@
   "JPM": 345.54,
   "MDT": 102.88,
   "MMM": 189.37,
-  "MO": 78.9,
+  "MO": 78.91,
   "MSFT": 541.74,
-  "PG": 173.0,
+  "PG": 173.02,
   "SAP": 236.1,
   "SLB": 51.67,
   "TXN": 313.58,
@@ -169,14 +169,19 @@
    "d": "2026-11-16",
    "eq": 106952.61,
    "spy": 740.04
+  },
+  {
+   "d": "2026-11-17",
+   "eq": 106976.93,
+   "spy": 740.04
   }
  ],
  "last_run": {
-  "at": "2026-11-16T23:43+00:00",
-  "mode": "full",
+  "at": "2026-11-17T02:35+00:00",
+  "mode": "risk",
   "log": [
-   "=== full run on PAPER ===",
-   "Account equity $106,952.61 cash $80,456.73 | positions 20 | market open: False",
+   "=== risk run on PAPER ===",
+   "Account equity $106,976.93 cash $80,456.73 | positions 20 | market open: False",
    "Market closed – no trades, snapshot only."
   ]
  }
