@@ -1,0 +1,55 @@
+name: Trading bot
+
+on:
+  schedule:
+    # Every 10 minutes, Mon–Fri, 13:00–20:59 UTC. This covers the New York session in winter and summer;
+    # the bot itself checks Alpaca's market clock and does nothing when the market is closed.
+    - cron: "*/10 13-20 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trading-bot
+  cancel-in-progress: false
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run bot
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          ALPACA_LIVE_CONFIRM: ${{ secrets.ALPACA_LIVE_CONFIRM }}
+        run: python trader.py
+
+      - name: Save state and app data
+        if: always()
+        run: |
+          git config user.name "trading-bot"
+          git config user.email "bot@users.noreply.github.com"
+          [ -f state.json ] || exit 0
+          mkdir -p /tmp/out && cp state.json status.json /tmp/out/ 2>/dev/null || true
+          for i in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/out/*.json .
+            git add state.json status.json
+            git diff --cached --quiet && exit 0
+            git commit -m "bot run $(date -u +%F_%H:%M)"
+            git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
