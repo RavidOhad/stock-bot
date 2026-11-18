@@ -174,14 +174,19 @@
    "d": "2026-11-17",
    "eq": 106553.82,
    "spy": 732.41
+  },
+  {
+   "d": "2026-11-18",
+   "eq": 106547.49,
+   "spy": 732.41
   }
  ],
  "last_run": {
-  "at": "2026-11-17T22:50+00:00",
-  "mode": "full",
+  "at": "2026-11-18T01:48+00:00",
+  "mode": "risk",
   "log": [
-   "=== full run on PAPER ===",
-   "Account equity $106,553.82 cash $80,456.73 | positions 20 | market open: False",
+   "=== risk run on PAPER ===",
+   "Account equity $106,547.49 cash $80,456.73 | positions 20 | market open: False",
    "Market closed – no trades, snapshot only."
   ]
  }
