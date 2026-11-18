@@ -38,7 +38,22 @@
   "UPS": "2026-11-10",
   "WB": "2026-11-10"
  },
- "trades": [
+ "trades": [],
+ "history": [
+  {
+   "d": "2026-11-18",
+   "eq": 106453.03
+  }
+ ],
+ "last_run": {
+  "at": "2026-11-18T07:46-05:00",
+  "log": [
+   "=== day-trading run on PAPER ===",
+   "2026-11-18 07:46 NY | equity $106,453.03 cash $80,462.17 | open positions 20 | market closed",
+   "Market closed – snapshot only."
+  ]
+ },
+ "swing_trades": [
   {
    "date": "2026-11-10",
    "time": "14:51",
@@ -139,55 +154,13 @@
    "score": 40.1
   }
  ],
- "history": [
-  {
-   "d": "2026-11-10",
-   "eq": 107079.7,
-   "spy": 749.93
-  },
-  {
-   "d": "2026-11-11",
-   "eq": 107170.84,
-   "spy": 759.8
-  },
-  {
-   "d": "2026-11-12",
-   "eq": 107142.67,
-   "spy": 757.16
-  },
-  {
-   "d": "2026-11-13",
-   "eq": 107241.49,
-   "spy": 754.27
-  },
-  {
-   "d": "2026-11-14",
-   "eq": 107211.33,
-   "spy": 754.27
-  },
-  {
-   "d": "2026-11-16",
-   "eq": 106952.61,
-   "spy": 740.04
-  },
-  {
-   "d": "2026-11-17",
-   "eq": 106553.82,
-   "spy": 732.41
-  },
-  {
-   "d": "2026-11-18",
-   "eq": 106547.49,
-   "spy": 732.41
+ "archived_swing": true,
+ "open": {},
+ "days": {
+  "2026-11-18": {
+   "start_equity": 106531.15,
+   "entries": 0,
+   "symbols": []
   }
- ],
- "last_run": {
-  "at": "2026-11-18T01:48+00:00",
-  "mode": "risk",
-  "log": [
-   "=== risk run on PAPER ===",
-   "Account equity $106,547.49 cash $80,456.73 | positions 20 | market open: False",
-   "Market closed – no trades, snapshot only."
-  ]
  }
 }
