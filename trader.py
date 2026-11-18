@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
-"""Alpaca paper-trading bot for the Buy-rated stock list.
+"""Alpaca paper DAY-TRADING bot for the Buy-rated stock list.
 
-Runs on GitHub Actions twice per US trading day:
-  --mode full  (≈10:05 New York)  : sells by the rules, then buys into free slots
-  --mode risk  (≈14:30 New York)  : sells by the rules only (stop-loss / trailing / target)
+GitHub Actions runs it every 10 minutes on US trading days. Each run:
+  1. reconciles trades that closed since the last run (stop / target hit at Alpaca),
+  2. closes anything left from a previous day,
+  3. near the close (≤20 min) cancels all orders and closes every position – the bot ends each day in cash,
+  4. otherwise looks for opening-range breakouts and enters with a bracket order
+     (market buy + stop-loss + take-profit that live at Alpaca, so exits happen even between runs).
 
-Keys come from environment variables (GitHub Secrets) – never from files:
-  ALPACA_KEY_ID, ALPACA_SECRET_KEY            (required)
-  NTFY_TOPIC                                  (optional – push notifications to the ntfy app)
-  ALPACA_LIVE_CONFIRM=I-UNDERSTAND            (only together with "mode": "live" in config.json)
+Strategy (long only):
+  - Universe: the Buy-rated list, price ≥ $10 and liquid enough.
+  - Opening range = first 30 minutes. Entry when the price breaks above the range high,
+    is above VWAP, is stronger than SPY today, SPY itself is above its VWAP,
+    and the price is no more than 1.5% above the range high (no chasing).
+  - Stop = middle of the opening range (kept between 0.5% and 2.5% below the entry). Target = 2 × risk.
+  - Size: risk 0.5% of equity per trade, at most 20% of equity per stock,
+    at most 5 open positions and 8 trades a day, no new entries after a 2% daily loss
+    or in the last 90 minutes.
 
+Keys come from environment variables (GitHub Secrets): ALPACA_KEY_ID, ALPACA_SECRET_KEY,
+optional NTFY_TOPIC, and ALPACA_LIVE_CONFIRM=I-UNDERSTAND only together with "mode": "live".
 Python standard library only. Not investment advice.
 """
-import argparse, csv, json, math, os, statistics, sys, time
+import argparse, csv, json, math, os, re, statistics, sys, time
 import urllib.request, urllib.error, urllib.parse
-from datetime import datetime, timedelta, timezone, date
+from datetime import datetime, timedelta, timezone
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CONFIG = os.path.join(ROOT, "config.json")
@@ -25,7 +35,6 @@ PAPER = "https://paper-api.alpaca.markets"
 LIVE = "https://api.alpaca.markets"
 DATA = "https://data.alpaca.markets"
 BENCH = "SPY"
-
 LOG = []
 
 
@@ -44,7 +53,7 @@ class Alpaca:
         r = urllib.request.Request(url, data=data, method=method, headers={
             "APCA-API-KEY-ID": self.key, "APCA-API-SECRET-KEY": self.secret,
             "Content-Type": "application/json", "Accept": "application/json",
-            "User-Agent": "buy-rated-bot/1.0"})
+            "User-Agent": "buy-rated-bot/2.0"})
         for attempt in range(3):
             try:
                 with urllib.request.urlopen(r, timeout=30) as resp:
@@ -55,60 +64,34 @@ class Alpaca:
                 if e.code == 404 and ok404:
                     return None
                 if e.code == 429 or e.code >= 500:
-                    time.sleep(2 + attempt * 3); continue
+                    time.sleep(2 + attempt * 3)
+                    continue
                 raise RuntimeError(f"{method} {url} -> {e.code}: {txt[:300]}")
-            except urllib.error.URLError as e:
+            except urllib.error.URLError:
                 time.sleep(2 + attempt * 3)
-                last = e
         raise RuntimeError(f"{method} {url} failed after retries")
 
     def get(self, path, **q):
-        url = self.base + path + ("?" + urllib.parse.urlencode(q) if q else "")
-        return self.req("GET", url)
+        return self.req("GET", self.base + path + ("?" + urllib.parse.urlencode(q) if q else ""))
 
-    def data_bars(self, symbols, start):
+    def bars(self, symbols, timeframe, start):
         out = {}
         for i in range(0, len(symbols), 50):
-            chunk = symbols[i:i + 50]
-            token = None
+            chunk, token = symbols[i:i + 50], None
             while True:
-                q = {"symbols": ",".join(chunk), "timeframe": "1Day", "start": start,
+                q = {"symbols": ",".join(chunk), "timeframe": timeframe, "start": start,
                      "limit": 10000, "adjustment": "split", "feed": "iex"}
                 if token:
                     q["page_token"] = token
                 res = self.req("GET", DATA + "/v2/stocks/bars?" + urllib.parse.urlencode(q))
-                for s, bars in (res.get("bars") or {}).items():
-                    out.setdefault(s, []).extend(bars)
+                for s, b in (res.get("bars") or {}).items():
+                    out.setdefault(s, []).extend(b)
                 token = res.get("next_page_token")
                 if not token:
                     break
+        for s in out:
+            out[s].sort(key=lambda b: b["t"])
         return out
-
-
-# ---------------------------------------------------------------- scoring (same rules as the Excel tracker)
-def metrics(closes):
-    closes = [c for c in closes if c and c > 0]
-    if len(closes) < 25:
-        return None
-    w = closes[-42:]                      # ≈ 2 months of trading days
-    last = w[-1]
-    sma20 = statistics.mean(w[-20:])
-    sma40 = statistics.mean(w[-40:]) if len(w) >= 40 else statistics.mean(w)
-    rets = [math.log(w[i] / w[i - 1]) for i in range(1, len(w))]
-    return {"last": last, "ret_2m": last / w[0] - 1, "below_high": 1 - last / max(w),
-            "vol": statistics.stdev(rets) * math.sqrt(252),
-            "p_vs_sma20": last / sma20 - 1, "sma20_vs_sma40": sma20 / sma40 - 1}
-
-
-def score(m, target):
-    clip = lambda x: max(0.0, min(1.0, x))
-    trend = (0.5 if m["p_vs_sma20"] > 0 else 0) + (0.5 if m["sma20_vs_sma40"] > 0 else 0)
-    mom = clip((m["ret_2m"] + 0.20) / 0.40)
-    d = m["below_high"]
-    pull = 0.7 if d <= 0.03 else (1.0 if d <= 0.12 else clip(1 - (d - 0.12) / 0.18))
-    vol = clip((0.60 - m["vol"]) / 0.45)
-    up = clip((target / m["last"] - 1) / 0.30) if target else 0
-    return round(trend * 25 + mom * 20 + pull * 20 + vol * 15 + up * 20, 1)
 
 
 # ---------------------------------------------------------------- helpers
@@ -128,8 +111,21 @@ def save_json(path, obj):
 def load_universe():
     with open(UNIVERSE, newline="", encoding="utf-8") as f:
         return {r["ticker"]: {"name": r["name"], "group": r["group"],
-                              "target": float(r["target"]) if r["target"] else None,
-                              "rating": r["rating"]} for r in csv.DictReader(f)}
+                              "target": float(r["target"]) if r["target"] else None} for r in csv.DictReader(f)}
+
+
+def f(x, d=0.0):
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return d
+
+
+def parse_ts(s):
+    """Alpaca timestamps may carry nanoseconds; Python wants at most microseconds."""
+    s = s.replace("Z", "+00:00")
+    s = re.sub(r"(\.\d{6})\d+", r"\1", s)
+    return datetime.fromisoformat(s)
 
 
 def notify(title, msg):
@@ -140,254 +136,334 @@ def notify(title, msg):
         r = urllib.request.Request("https://ntfy.sh/" + urllib.parse.quote(topic), data=msg.encode(),
                                    method="POST", headers={"Title": title, "Tags": "chart_with_upwards_trend"})
         urllib.request.urlopen(r, timeout=15).read()
-    except Exception as e:  # notifications are best-effort
+    except Exception as e:
         print("ntfy failed:", e)
 
 
-def f(x, d=0.0):
-    try:
-        return float(x)
-    except (TypeError, ValueError):
-        return d
+# ---------------------------------------------------------------- market data → signals
+def daily_filter(api, uni, cfg, state, today):
+    """Once a day: liquid, ≥$10 names + previous close. Cached in state."""
+    cache = state.get("daily_cache") or {}
+    if cache.get("date") == today:
+        return cache["ok"], cache["prev"]
+    start = (datetime.fromisoformat(today) - timedelta(days=45)).date().isoformat()
+    bars = api.bars(sorted(set(uni) | {BENCH}), "1Day", start)
+    ok, prev = [], {}
+    for s, b in bars.items():
+        b = [x for x in b if x["t"][:10] < today]       # completed days only
+        if len(b) < 10:
+            continue
+        prev[s] = b[-1]["c"]
+        last20 = b[-20:]
+        dollar_vol = statistics.mean(x["c"] * x["v"] for x in last20)
+        if s != BENCH and b[-1]["c"] >= cfg["min_price"] and dollar_vol >= cfg["min_iex_dollar_volume"]:
+            ok.append(s)
+    state["daily_cache"] = {"date": today, "ok": sorted(ok), "prev": prev}
+    log(f"Daily filter: {len(ok)} liquid stocks ≥ ${cfg['min_price']}")
+    return ok, prev
+
+
+def intraday_stats(bars, open_utc, or_end_utc):
+    if not bars:
+        return None
+    rng = [b for b in bars if open_utc <= parse_ts(b["t"]) < or_end_utc]
+    if not rng:
+        return None
+    pv = sum(((b["h"] + b["l"] + b["c"]) / 3) * b["v"] for b in bars)
+    vol = sum(b["v"] for b in bars)
+    return {"or_high": max(b["h"] for b in rng), "or_low": min(b["l"] for b in rng),
+            "open": bars[0]["o"], "last": bars[-1]["c"], "high": max(b["h"] for b in bars),
+            "vwap": pv / vol if vol else bars[-1]["c"], "n": len(bars),
+            "or_done": parse_ts(bars[-1]["t"]) >= or_end_utc}
 
 
 # ---------------------------------------------------------------- main logic
-def run(mode, api, cfg, state, uni, now):
-    today = now.date().isoformat()
+def run(api, cfg, state, uni):
     actions = []
-
     clock = api.get("/v2/clock")
+    now_ny = parse_ts(clock["timestamp"])
+    today = now_ny.date().isoformat()
     acct = api.get("/v2/account")
-    positions = api.get("/v2/positions")
-    open_orders = api.get("/v2/orders", status="open", limit=200)
-    pending = {o["symbol"] for o in open_orders}
-    equity = f(acct.get("equity"))
-    cash = f(acct.get("cash"))
-    log(f"Account equity ${equity:,.2f} cash ${cash:,.2f} | positions {len(positions)} | market open: {clock.get('is_open')}")
+    equity, cash = f(acct.get("equity")), f(acct.get("cash"))
+    last_equity = f(acct.get("last_equity")) or equity
+    positions = {p["symbol"]: p for p in api.get("/v2/positions")}
+    orders = api.get("/v2/orders", status="open", limit=500, nested="true")
+    pending = {o["symbol"] for o in orders if o.get("side") == "buy"}
+    log(f"{now_ny:%Y-%m-%d %H:%M} NY | equity ${equity:,.2f} cash ${cash:,.2f} | open positions {len(positions)}"
+        f" | market {'OPEN' if clock.get('is_open') else 'closed'}")
 
-    symbols = sorted(set(uni) | {p["symbol"] for p in positions} | {BENCH})
-    start = (now - timedelta(days=95)).date().isoformat()
-    bars = api.data_bars(symbols, start)
-    scored = {}
-    for s in symbols:
-        closes = [b["c"] for b in sorted(bars.get(s, []), key=lambda b: b["t"])]
-        m = metrics(closes)
-        if m:
-            tgt = uni.get(s, {}).get("target")
-            scored[s] = dict(m, score=score(m, tgt), target=tgt)
-    spy = scored.get(BENCH, {}).get("last")
-
-    # first run baseline
+    for k, v in (("trades", []), ("history", []), ("open", {}), ("days", {})):
+        state.setdefault(k, v)
     if not state.get("start"):
-        state["start"] = {"date": today, "equity": equity, "spy": spy}
-    state.setdefault("peaks", {}); state.setdefault("entries", {}); state.setdefault("cooldown", {})
-    state.setdefault("trades", []); state.setdefault("history", [])
+        state["start"] = {"date": today, "equity": equity}
+    day = state["days"].setdefault(today, {"start_equity": last_equity, "entries": 0, "symbols": []})
 
-    def record(side, sym, amount, price, reason, sc=None):
-        t = {"date": today, "time": now.strftime("%H:%M"), "side": side, "symbol": sym,
-             "name": uni.get(sym, {}).get("name", sym), "amount": round(amount, 2),
-             "price": round(price, 2) if price else None, "reason": reason, "score": sc}
-        state["trades"].append(t)
-        actions.append(("קנייה" if side == "buy" else "מכירה") + f" {sym} – {reason}")
-        log(f"{side.upper()} {sym} ${amount:,.2f} @ {price} | {reason}")
+    def close_all(reason):
+        if not positions and not orders:
+            return
+        api.req("DELETE", api.base + "/v2/positions?cancel_orders=true")
+        for s, p in positions.items():
+            state["open"].setdefault(s, {"date": today, "entry": f(p.get("avg_entry_price")),
+                                         "qty": f(p.get("qty")), "why": "פוזיציה קודמת"})
+            state["open"][s]["exit_reason"] = reason
+            actions.append(f"מכירה {s} – {reason}")
+            log(f"CLOSE {s} | {reason}")
 
-    trading = clock.get("is_open") and not cfg.get("paused")
+    if not clock.get("is_open"):
+        log("Market closed – snapshot only.")
+        reconcile(api, state, positions, set(), uni, today, actions)
+        return finish(api, cfg, state, uni, clock, now_ny, [], actions)
+
+    mins_open = (now_ny - now_ny.replace(hour=9, minute=30, second=0, microsecond=0)).total_seconds() / 60
+    mins_close = (parse_ts(clock["next_close"]) - now_ny).total_seconds() / 60
+
+    # 0. one-time switch from the old long-term portfolio
+    if not state.get("daytrade_since"):
+        state["daytrade_since"] = today
+        state["start"] = {"date": today, "equity": equity}
+        state.pop("peaks", None); state.pop("entries", None); state.pop("cooldown", None); state.pop("initialized", None)
+        state["swing_trades"] = state.get("trades", [])     # archive of the old long-term bot
+        state["trades"] = []
+        state["history"] = []
+        if positions:
+            close_all("מעבר למסחר יומי")
+            notify("Alpaca bot", "\n".join(actions))
+            return finish(api, cfg, state, uni, clock, now_ny, [], actions)
+
+    # 1. trades closed since last run
+    reconcile(api, state, positions, pending, uni, today, actions)
+
+    # 2. leftovers from a previous day
+    stale = {s for s in positions if state["open"].get(s, {}).get("date", "") < today}
+    if stale:
+        for s in stale:
+            api.req("DELETE", api.base + f"/v2/positions/{s}?cancel_orders=true")
+            state["open"].setdefault(s, {"date": today, "entry": f(positions[s].get("avg_entry_price")),
+                                         "qty": f(positions[s].get("qty"))})["exit_reason"] = "נשארה מאתמול – נסגרה בפתיחה"
+            actions.append(f"מכירה {s} – נשארה מיום קודם")
+            log(f"CLOSE stale {s}")
+
+    # 3. end of day: everything to cash
+    if mins_close <= cfg["flatten_min_before_close"]:
+        if positions or orders:
+            close_all("סגירת סוף יום")
+        else:
+            log("End of day – already flat.")
+        if actions:
+            notify("Alpaca bot", "\n".join(actions))
+        return finish(api, cfg, state, uni, clock, now_ny, [], actions)
+
+    # 4. entries
+    candidates = []
+    day_pl = equity / day["start_equity"] - 1 if day["start_equity"] else 0
+    can_enter = True
     if cfg.get("paused"):
-        log("Bot is paused (config.json) – no trades.")
-    elif not clock.get("is_open"):
-        log("Market closed – no trades, snapshot only.")
+        log("Paused – no new entries."); can_enter = False
+    elif mins_open < cfg["opening_range_min"]:
+        log(f"Opening range still forming ({mins_open:.0f} min since open)."); can_enter = False
+    elif mins_close < cfg["no_new_entries_min_before_close"]:
+        log("Too close to the close for new entries."); can_enter = False
+    elif day_pl <= -cfg["daily_loss_limit"]:
+        log(f"Daily loss limit reached ({day_pl:.2%}) – no new entries today."); can_enter = False
+    elif day["entries"] >= cfg["max_trades_per_day"]:
+        log("Max trades for today reached."); can_enter = False
 
-    # ---- sells
-    held = {}
-    for p in positions:
-        s = p["symbol"]
-        price = f(p.get("current_price"))
-        avg = f(p.get("avg_entry_price"))
-        peak = max(f(state["peaks"].get(s), price), price)
-        state["peaks"][s] = peak
-        held[s] = p
-        if not trading or s in pending:
-            continue
-        entry = state["entries"].get(s, {})
-        bought_today = entry.get("date") == today
-        sc = scored.get(s, {}).get("score")
-        tgt = uni.get(s, {}).get("target")
-        reason = None
-        if avg and price <= avg * (1 - cfg["stop_loss"]):
-            reason = f"סטופ-לוס: ירידה של {1 - price / avg:.1%} ממחיר הקנייה"
-        elif not bought_today and peak and price <= peak * (1 - cfg["trailing_stop"]):
-            reason = f"סטופ נגרר: ירידה של {1 - price / peak:.1%} מהשיא"
-        elif not bought_today and cfg.get("sell_at_analyst_target") and tgt and price >= tgt:
-            reason = f"הגיעה ליעד האנליסטים ${tgt:,.2f} – מימוש רווח"
-        elif not bought_today and mode == "full" and sc is not None and sc < cfg["sell_score_below"]:
-            reason = f"ציון הקנייה ירד ל-{sc:.0f}"
-        if reason:
-            api.req("DELETE", api.base + f"/v2/positions/{s}")
-            record("sell", s, f(p.get("market_value")), price, reason, sc)
-            state["cooldown"][s] = today
-            state["peaks"].pop(s, None); state["entries"].pop(s, None)
-            held.pop(s)
-            cash += f(p.get("market_value"))
-
-    # ---- buys
-    if trading and mode == "full":
-        initial = not state.get("initialized")
-        slots = cfg["max_positions"] - len(held) - len(pending - set(held))
-        if not initial:
-            slots = min(slots, cfg["max_new_buys_per_day"])
-        cd_limit = (now.date() - timedelta(days=cfg["cooldown_days"])).isoformat()
-        cands = []
-        for s, info in uni.items():
-            m = scored.get(s)
-            if not m or s in held or s in pending:
+    ok, prev = daily_filter(api, uni, cfg, state, today)
+    open_utc = now_ny.replace(hour=9, minute=30, second=0, microsecond=0).astimezone(timezone.utc)
+    or_end = open_utc + timedelta(minutes=cfg["opening_range_min"])
+    if mins_open >= 5:
+        ib = api.bars(ok + [BENCH], "5Min", open_utc.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        spy = intraday_stats(ib.get(BENCH), open_utc, or_end)
+        spy_chg = (spy["last"] / prev[BENCH] - 1) if spy and prev.get(BENCH) else 0
+        spy_ok = bool(spy and spy["last"] > spy["vwap"])
+        for s in ok:
+            st = intraday_stats(ib.get(s), open_utc, or_end)
+            if not st or not prev.get(s):
                 continue
-            if state["cooldown"].get(s, "0000") > cd_limit:
-                continue
-            if m["last"] < cfg["min_price"] or m["vol"] > cfg["max_volatility"]:
-                continue
-            if m["score"] < cfg["min_buy_score"]:
-                continue
-            cands.append((m["score"], s))
-        cands.sort(reverse=True)
-        picks = [s for _, s in cands]
-        if initial and cfg.get("min_israeli_in_initial"):
-            top = picks[:max(slots, 0)]
-            il_have = [s for s in top if uni[s]["group"] == "IL"]
-            il_more = [s for s in picks[len(top):] if uni[s]["group"] == "IL"]
-            need = max(0, cfg["min_israeli_in_initial"] - len(il_have))
-            for s in il_more[:need]:
-                drop = next((x for x in reversed(top) if uni[x]["group"] != "IL"), None)
-                if drop:
-                    top.remove(drop); top.append(s)
-            picks = top + [s for s in picks if s not in top]
-        per_pos = equity * (1 - cfg["cash_reserve"]) / cfg["max_positions"]
-        reserve = equity * cfg["cash_reserve"]
-        bought = 0
-        for s in picks:
-            if bought >= slots:
-                break
-            budget = min(per_pos, cash - reserve)
-            if budget < 50:
-                log("Not enough free cash for more buys."); break
-            asset = api.req("GET", api.base + f"/v2/assets/{s}", ok404=True)
-            if not asset or not asset.get("tradable") or asset.get("status") != "active":
-                log(f"skip {s}: not tradable on Alpaca"); continue
-            price = scored[s]["last"]
-            if asset.get("fractionable"):
-                order = {"symbol": s, "notional": f"{budget:.2f}", "side": "buy", "type": "market", "time_in_force": "day"}
-                spent = budget
-            else:
-                qty = int(budget // price)
+            chg = st["last"] / prev[s] - 1
+            rs = chg - spy_chg
+            brk = st["last"] > st["or_high"]
+            chase = st["last"] / st["or_high"] - 1
+            sig = (st["or_done"] and brk and st["last"] > st["vwap"] and rs > 0 and chase <= cfg["max_chase"]
+                   and s not in day["symbols"] and s not in positions and s not in pending)
+            candidates.append({"symbol": s, "name": uni[s]["name"], "group": uni[s]["group"], "price": round(st["last"], 2),
+                               "chg": chg, "rs": rs, "or_high": round(st["or_high"], 2), "or_low": round(st["or_low"], 2),
+                               "vwap": round(st["vwap"], 2), "breakout": brk, "signal": bool(sig), "_st": st})
+        candidates.sort(key=lambda c: (not c["signal"], -c["rs"]))
+        if can_enter and not spy_ok:
+            log("SPY below its VWAP – market filter blocks new long entries.")
+            can_enter = False
+        if can_enter:
+            slots = min(cfg["max_open"] - len(positions) - len(pending),
+                        cfg["max_trades_per_day"] - day["entries"])
+            free_cash = cash - equity * 0.05
+            for c in candidates:
+                if slots <= 0:
+                    break
+                if not c["signal"]:
+                    break
+                st, s = c["_st"], c["symbol"]
+                entry = st["last"]
+                stop = (st["or_high"] + st["or_low"]) / 2
+                stop = min(stop, entry * (1 - cfg["min_stop_pct"]))
+                stop = max(stop, entry * (1 - cfg["max_stop_pct"]))
+                risk_ps = entry - stop
+                target = entry + cfg["reward_risk"] * risk_ps
+                qty = int(min(equity * cfg["risk_per_trade"] / risk_ps,
+                              equity * cfg["max_position_pct"] / entry,
+                              max(free_cash, 0) / entry))
                 if qty < 1:
-                    continue
-                order = {"symbol": s, "qty": str(qty), "side": "buy", "type": "market", "time_in_force": "day"}
-                spent = qty * price
-            try:
-                api.req("POST", api.base + "/v2/orders", order)
-            except RuntimeError as e:
-                log(f"order {s} rejected: {e}"); continue
-            sc = scored[s]["score"]
-            record("buy", s, spent, price, ("קנייה ראשונית" if initial else "משבצת פנויה") + f", ציון {sc:.0f}", sc)
-            state["entries"][s] = {"date": today, "price": price, "score": sc}
-            state["peaks"][s] = price
-            cash -= spent
-            bought += 1
-        if initial and bought:
-            state["initialized"] = today
-
-    # ---- history & status
-    hist = [h for h in state["history"] if h["d"] != today]
-    hist.append({"d": today, "eq": round(equity, 2), "spy": spy})
-    state["history"] = hist[-400:]
-    state["trades"] = state["trades"][-400:]
-    state["last_run"] = {"at": now.isoformat(timespec="minutes"), "mode": mode, "log": LOG[-40:]}
-
+                    log(f"skip {s}: size < 1 share"); continue
+                asset = api.req("GET", api.base + f"/v2/assets/{s}", ok404=True)
+                if not asset or not asset.get("tradable"):
+                    log(f"skip {s}: not tradable"); continue
+                order = {"symbol": s, "qty": str(qty), "side": "buy", "type": "market", "time_in_force": "day",
+                         "order_class": "bracket",
+                         "take_profit": {"limit_price": f"{target:.2f}"},
+                         "stop_loss": {"stop_price": f"{stop:.2f}"}}
+                try:
+                    api.req("POST", api.base + "/v2/orders", order)
+                except RuntimeError as e:
+                    log(f"order {s} rejected: {e}"); continue
+                why = f"פריצה מעל טווח הפתיחה ${c['or_high']:.2f}, חזקה מה-S&P ב-{abs(c['rs']) * 100:.1f}%"
+                state["open"][s] = {"date": today, "time": f"{now_ny:%H:%M}", "entry": round(entry, 2), "qty": qty,
+                                    "stop": round(stop, 2), "target": round(target, 2), "why": why}
+                day["entries"] += 1
+                day["symbols"].append(s)
+                free_cash -= qty * entry
+                slots -= 1
+                actions.append(f"קנייה {s} {qty} מניות ~${entry:.2f} | סטופ ${stop:.2f} | יעד ${target:.2f}")
+                log(f"BUY {s} x{qty} @~{entry:.2f} stop {stop:.2f} target {target:.2f}")
     if actions:
         notify("Alpaca bot", "\n".join(actions))
-    return build_status(api, cfg, state, uni, scored, clock, now)
+    return finish(api, cfg, state, uni, clock, now_ny, candidates, actions)
 
 
-def build_status(api, cfg, state, uni, scored, clock, now):
+def reconcile(api, state, positions, pending, uni, today, actions):
+    """Turn closed positions into finished trades using today's fills."""
+    done = [s for s in list(state["open"]) if s not in positions and s not in pending]
+    if not done:
+        return
+    since = (datetime.now(timezone.utc) - timedelta(days=4)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    fills = api.req("GET", api.base + "/v2/account/activities/FILL?" + urllib.parse.urlencode(
+        {"after": since, "direction": "desc", "page_size": 100})) or []
+    for s in done:
+        o = state["open"].pop(s)
+        mine = [x for x in fills if x.get("symbol") == s and str(x.get("transaction_time", ""))[:10] >= o.get("date", today)]
+        sells = [x for x in mine if x.get("side") in ("sell", "sell_short")]
+        buys = [x for x in mine if x.get("side") == "buy"]
+        if not sells:
+            if s not in positions and not buys:
+                log(f"{s}: entry never filled – dropped")
+            continue
+        q = sum(f(x["qty"]) for x in sells)
+        exit_px = sum(f(x["price"]) * f(x["qty"]) for x in sells) / q
+        bq = sum(f(x["qty"]) for x in buys) or q
+        entry_px = (sum(f(x["price"]) * f(x["qty"]) for x in buys) / bq) if buys else o.get("entry", exit_px)
+        reason = o.get("exit_reason")
+        if not reason:
+            if o.get("target") and exit_px >= o["target"] * 0.997:
+                reason = "הגיעה ליעד – רווח"
+            elif o.get("stop") and exit_px <= o["stop"] * 1.003:
+                reason = "סטופ-לוס"
+            else:
+                reason = "נסגרה"
+        pl = (exit_px - entry_px) * q
+        t = {"date": o.get("date", today), "in": o.get("time", ""), "symbol": s, "name": uni.get(s, {}).get("name", s),
+             "qty": q, "entry": round(entry_px, 2), "exit": round(exit_px, 2), "pl": round(pl, 2),
+             "pl_pct": round(exit_px / entry_px - 1, 4) if entry_px else 0, "why": o.get("why", ""), "exit_reason": reason}
+        state["trades"].append(t)
+        actions.append(f"{'רווח' if pl >= 0 else 'הפסד'} {s}: ${pl:,.0f} ({reason})")
+        log(f"CLOSED {s} {q:g} @ {exit_px:.2f} (in {entry_px:.2f}) P/L {pl:+.2f} | {reason}")
+
+
+def finish(api, cfg, state, uni, clock, now_ny, candidates, actions):
+    today = now_ny.date().isoformat()
     acct = api.get("/v2/account")
-    positions = api.get("/v2/positions")
     equity = f(acct.get("equity"))
-    st = state.get("start") or {}
-    spy_now = scored.get(BENCH, {}).get("last")
+    positions = api.get("/v2/positions")
+    hist = [h for h in state["history"] if h["d"] != today]
+    hist.append({"d": today, "eq": round(equity, 2)})
+    state["history"] = hist[-300:]
+    state["trades"] = state["trades"][-600:]
+    state["days"] = dict(sorted(state["days"].items())[-30:])
+    state["last_run"] = {"at": now_ny.isoformat(timespec="minutes"), "log": LOG[-40:]}
+
     pos = []
     for p in positions:
-        s = p["symbol"]
-        avg, price = f(p.get("avg_entry_price")), f(p.get("current_price"))
-        peak = f(state.get("peaks", {}).get(s), price)
-        stop = max(avg * (1 - cfg["stop_loss"]), peak * (1 - cfg["trailing_stop"]))
+        s, o = p["symbol"], state["open"].get(p["symbol"], {})
         pos.append({"symbol": s, "name": uni.get(s, {}).get("name", s), "group": uni.get(s, {}).get("group", ""),
-                    "qty": f(p.get("qty")), "avg": avg, "price": price, "value": f(p.get("market_value")),
-                    "pl": f(p.get("unrealized_pl")), "pl_pct": f(p.get("unrealized_plpc")),
-                    "day_pct": f(p.get("change_today")), "target": uni.get(s, {}).get("target"),
-                    "score": scored.get(s, {}).get("score"), "stop": round(stop, 2),
-                    "since": state.get("entries", {}).get(s, {}).get("date")})
-    pos.sort(key=lambda x: -x["value"])
-    watch = sorted(((v["score"], s) for s, v in scored.items() if s in uni and s not in {p["symbol"] for p in pos}),
-                   reverse=True)[:10]
-    start_d = st.get("date")
-    eval_d = (date.fromisoformat(start_d) + timedelta(days=cfg["eval_days"])).isoformat() if start_d else None
+                    "qty": f(p.get("qty")), "avg": f(p.get("avg_entry_price")), "price": f(p.get("current_price")),
+                    "value": f(p.get("market_value")), "pl": f(p.get("unrealized_pl")), "pl_pct": f(p.get("unrealized_plpc")),
+                    "stop": o.get("stop"), "target": o.get("target"), "since": o.get("time"), "why": o.get("why", "")})
+    trades = state["trades"]
+    since = state.get("daytrade_since") or ""
+    dt_trades = [t for t in trades if t["date"] >= since and t.get("exit_reason") != "מעבר למסחר יומי"]
+    wins = [t for t in dt_trades if t["pl"] > 0]
+    today_trades = [t for t in dt_trades if t["date"] == today]
+    st = state.get("start") or {}
+    start_eq = st.get("equity")
+    day = state["days"].get(today, {})
     status = {
-        "generated_at": now.isoformat(timespec="minutes"),
+        "version": 2, "strategy": "daytrade",
+        "generated_at": now_ny.isoformat(timespec="minutes"),
         "mode": "live" if api.base == LIVE else "paper",
         "paused": bool(cfg.get("paused")),
-        "market_open": bool(clock.get("is_open")),
-        "next_open": clock.get("next_open"),
-        "account": {"equity": equity, "cash": f(acct.get("cash")), "last_equity": f(acct.get("last_equity")),
-                    "buying_power": f(acct.get("buying_power"))},
-        "start": st, "eval_date": eval_d,
-        "perf": {"total": (equity / st["equity"] - 1) if st.get("equity") else 0,
-                 "spy": (spy_now / st["spy"] - 1) if st.get("spy") and spy_now else None,
-                 "day": (equity / f(acct.get("last_equity")) - 1) if f(acct.get("last_equity")) else 0},
+        "market_open": bool(clock.get("is_open")), "next_open": clock.get("next_open"),
+        "account": {"equity": equity, "cash": f(acct.get("cash")), "last_equity": f(acct.get("last_equity"))},
+        "start": st,
+        "eval_date": (datetime.fromisoformat(st["date"]) + timedelta(days=cfg["eval_days"])).date().isoformat() if st.get("date") else None,
+        "perf": {"total": equity / start_eq - 1 if start_eq else 0,
+                 "day": equity / f(acct.get("last_equity")) - 1 if f(acct.get("last_equity")) else 0},
+        "stats": {"trades": len(dt_trades), "wins": len(wins),
+                  "win_rate": len(wins) / len(dt_trades) if dt_trades else None,
+                  "realized": round(sum(t["pl"] for t in dt_trades), 2),
+                  "avg_win": round(statistics.mean(t["pl"] for t in wins), 2) if wins else None,
+                  "avg_loss": round(statistics.mean(t["pl"] for t in dt_trades if t["pl"] <= 0), 2)
+                  if any(t["pl"] <= 0 for t in dt_trades) else None,
+                  "today_realized": round(sum(t["pl"] for t in today_trades), 2),
+                  "today_trades": len(today_trades), "today_entries": day.get("entries", 0)},
         "positions": pos,
-        "history": state.get("history", []),
-        "trades": list(reversed(state.get("trades", [])))[:60],
-        "watchlist": [{"symbol": s, "name": uni[s]["name"], "group": uni[s]["group"], "score": sc,
-                       "price": round(scored[s]["last"], 2), "target": uni[s]["target"]} for sc, s in watch],
+        "history": state["history"],
+        "trades": list(reversed(trades))[:80],
+        "candidates": [{k: v for k, v in c.items() if k != "_st"} for c in candidates[:12]],
+        "actions": actions,
         "rules": cfg,
-        "last_run": state.get("last_run"),
+        "last_run": state["last_run"],
     }
     return status
 
 
+# ---------------------------------------------------------------- keys
 INVISIBLE = "​‌‍‎‏‪‫‬‭‮⁦⁧⁨⁩﻿ "
 
 
 def clean_key(v):
-    """Remove spaces, line breaks and invisible characters that sneak in when copying on a phone."""
     v = "".join(ch for ch in (v or "") if not ch.isspace() and ch not in INVISIBLE)
-    for junk in ("Key:", "KeyID:", "Secret:", "API Key ID:", "Secret Key:"):
-        if v.lower().startswith(junk.lower().replace(" ", "")):
-            v = v[len(junk.replace(" ", "")):]
+    for junk in ("Key:", "KeyID:", "Secret:", "APIKeyID:", "SecretKey:"):
+        if v.lower().startswith(junk.lower()):
+            v = v[len(junk):]
     return v.strip("\"'")
 
 
 def fail(msg_he, msg_en):
-    # ::error:: makes the message appear on the run's Summary page
     print(f"::error title=בעיה במפתחות Alpaca::{msg_he}")
     print(msg_en)
     sys.exit(1)
 
 
 def check_keys(key, secret, base):
-    raw_k, raw_s = os.environ.get("ALPACA_KEY_ID", ""), os.environ.get("ALPACA_SECRET_KEY", "")
-    print(f"Key ID: length {len(key)}, starts with '{key[:2]}' | Secret: length {len(secret)}"
-          f"{' | cleaned invisible characters/spaces' if (raw_k != key or raw_s != secret) else ''}")
+    print(f"Key ID: length {len(key)}, starts with '{key[:2]}' | Secret: length {len(secret)}")
     if not key or not secret:
-        fail("חסר אחד הסודות ALPACA_KEY_ID או ALPACA_SECRET_KEY ב-Settings ← Secrets ← Actions (בדוק שהשמות מדויקים).",
-             "Missing ALPACA_KEY_ID / ALPACA_SECRET_KEY secrets.")
-    if len(key) > len(secret) or (secret[:2] in ("PK", "AK", "CK") and key[:2] not in ("PK", "AK", "CK")):
-        fail("נראה שהמפתחות הפוכים: ב-ALPACA_KEY_ID צריך להיות הקצר (מתחיל ב-PK), וב-ALPACA_SECRET_KEY הארוך.",
-             "Keys look swapped.")
+        fail("חסר אחד הסודות ALPACA_KEY_ID או ALPACA_SECRET_KEY ב-Settings ← Secrets ← Actions.", "Missing secrets.")
+    if len(key) > len(secret):
+        fail("נראה שהמפתחות הפוכים: ב-ALPACA_KEY_ID צריך להיות הקצר (PK...), וב-ALPACA_SECRET_KEY הארוך.", "Keys swapped.")
     if any(ord(c) > 127 for c in key + secret):
-        fail("במפתחות יש תווים שאינם אנגליים. העתק אותם שוב מאתר Alpaca והדבק מחדש.", "Non-ASCII characters in keys.")
+        fail("במפתחות יש תווים שאינם אנגליים. העתק והדבק אותם מחדש.", "Non-ASCII characters in keys.")
 
     def try_base(b):
         r = urllib.request.Request(b + "/v2/account", headers={
-            "APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret, "User-Agent": "buy-rated-bot/1.0"})
+            "APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret, "User-Agent": "buy-rated-bot/2.0"})
         try:
             with urllib.request.urlopen(r, timeout=30) as resp:
                 return resp.status
@@ -397,38 +473,29 @@ def check_keys(key, secret, base):
             return None
 
     code = try_base(base)
-    print(f"Key check on {base}: HTTP {code}")
     if code == 200:
         return
     if code in (401, 403):
         other = LIVE if base == PAPER else PAPER
         if try_base(other) == 200:
-            if base == PAPER:
-                fail("אלה מפתחות של חשבון הכסף האמיתי (Live), לא של Paper. באתר Alpaca עבור לחשבון Paper (למעלה משמאל), "
-                     "צור מפתחות חדשים שם (Key מתחיל ב-PK) ועדכן את שני הסודות.", "These are LIVE keys, not PAPER keys.")
-            fail("אלה מפתחות Paper אבל הבוט מוגדר ל-Live.", "Paper keys used in live mode.")
-        hint = "" if key.startswith("PK") else f" (ה-Key ID שלך מתחיל ב-'{key[:2]}' ולא ב-PK.)"
-        fail("Alpaca לא מזהה את המפתחות." + hint + " צור זוג מפתחות חדש בחשבון Paper (Regenerate), "
-             "ועדכן את שני הסודות יחד: ALPACA_KEY_ID = המפתח הקצר שמתחיל ב-PK, ALPACA_SECRET_KEY = הארוך. "
-             "כל Regenerate מבטל את הזוג הקודם.", f"Keys not authorized (HTTP {code}).")
-    fail(f"לא הצלחתי להתחבר ל-Alpaca (קוד {code}). נסה להריץ שוב בעוד כמה דקות.", f"Connection problem: {code}")
+            fail("אלה מפתחות של חשבון הכסף האמיתי (Live), לא של Paper. צור מפתחות בתיבת Paper Accounts (מתחילים ב-PK)."
+                 if base == PAPER else "אלה מפתחות Paper אבל הבוט מוגדר ל-Live.", "Wrong account type.")
+        fail("Alpaca לא מזהה את המפתחות. צור זוג חדש בחשבון Paper (Regenerate) ועדכן את שני הסודות יחד.",
+             f"Keys not authorized ({code}).")
+    fail(f"לא הצלחתי להתחבר ל-Alpaca (קוד {code}). נסה שוב בעוד כמה דקות.", f"Connection problem: {code}")
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["full", "risk"], default="full")
-    a = ap.parse_args()
+    argparse.ArgumentParser().parse_args()
     key, secret = clean_key(os.environ.get("ALPACA_KEY_ID")), clean_key(os.environ.get("ALPACA_SECRET_KEY"))
     cfg = load_json(CONFIG, {})
     live = cfg.get("mode") == "live" and os.environ.get("ALPACA_LIVE_CONFIRM") == "I-UNDERSTAND"
-    if cfg.get("mode") == "live" and not live:
-        log("config says live but ALPACA_LIVE_CONFIRM is not set – staying on PAPER.")
-    check_keys(key, secret, LIVE if live else PAPER)
-    api = Alpaca(LIVE if live else PAPER, key, secret)
-    log(f"=== {a.mode} run on {'LIVE' if live else 'PAPER'} ===")
+    base = LIVE if live else PAPER
+    check_keys(key, secret, base)
+    api = Alpaca(base, key, secret)
+    log(f"=== day-trading run on {'LIVE' if live else 'PAPER'} ===")
     state = load_json(STATE, {})
-    now = datetime.now(timezone.utc)
-    status = run(a.mode, api, cfg, state, load_universe(), now)
+    status = run(api, cfg, state, load_universe())
     save_json(STATE, state)
     save_json(STATUS, status)
     log("done.")

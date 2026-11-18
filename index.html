@@ -70,19 +70,28 @@ svg text{font-family:inherit}
     <div class="small">שווי התיק</div>
     <div class="big" id="equity">—</div>
     <div class="kpis">
-      <div class="kpi"><b id="k-total">—</b><span>מאז ההתחלה</span></div>
-      <div class="kpi"><b id="k-spy">—</b><span>S&amp;P 500 באותה תקופה</span></div>
       <div class="kpi"><b id="k-day">—</b><span>היום</span></div>
+      <div class="kpi"><b id="k-total">—</b><span>מאז תחילת המסחר היומי</span></div>
+      <div class="kpi"><b id="k-win">—</b><span>עסקאות מרוויחות</span></div>
     </div>
   </div>
   <div class="card">
-    <div class="row"><b>הבוט מול השוק</b><span class="small" id="evalinfo"></span></div>
-    <div id="chart"></div>
-    <div class="legend"><span><i style="background:var(--acc)"></i>התיק שלי</span><span><i style="background:#8b949e"></i>S&amp;P 500 (SPY)</span></div>
+    <div class="row"><b>היום</b><span class="small" id="todayinfo"></span></div>
+    <div class="kpis">
+      <div class="kpi"><b id="t-pl">—</b><span>רווח ממומש היום</span></div>
+      <div class="kpi"><b id="t-n">—</b><span>כניסות היום</span></div>
+      <div class="kpi"><b id="t-open">—</b><span>פתוחות עכשיו</span></div>
+    </div>
   </div>
   <div class="card">
-    <div class="row"><b>מזומן פנוי</b><span class="ltr" id="cash">—</span></div>
-    <div class="row" style="margin-top:6px"><b>מספר מניות בתיק</b><span id="npos">—</span></div>
+    <div class="row"><b>שווי התיק לפי ימים</b><span class="small" id="evalinfo"></span></div>
+    <div id="chart"></div>
+  </div>
+  <div class="card">
+    <b>סיכום כל העסקאות</b>
+    <div class="row" style="margin-top:8px"><span>מספר עסקאות</span><span id="s-n">—</span></div>
+    <div class="row" style="margin-top:6px"><span>רווח/הפסד ממומש</span><span class="ltr" id="s-pl">—</span></div>
+    <div class="row" style="margin-top:6px"><span>רווח ממוצע / הפסד ממוצע</span><span class="ltr" id="s-avg">—</span></div>
   </div>
   <div class="card"><b>מה הבוט עשה לאחרונה</b><div id="lastacts"></div></div>
 </section>
@@ -90,7 +99,7 @@ svg text{font-family:inherit}
 <section class="view" id="v-pos"><div class="card" id="positions"></div></section>
 <section class="view" id="v-trades"><div class="card" id="trades"></div></section>
 <section class="view" id="v-watch">
-  <div class="card"><b>המועמדות הבאות לקנייה</b><div class="small" style="margin:4px 0 6px">לפי ציון הקנייה (0–100). הבוט קונה רק מציון 60 ומעלה, כשמתפנה מקום בתיק.</div><div id="watch"></div></div>
+  <div class="card"><b>מה הבוט רואה עכשיו</b><div class="small" style="margin:4px 0 6px">המניות החזקות ביותר היום ביחס ל-S&amp;P 500. "פריצה" = המחיר מעל הטווח של 30 הדקות הראשונות. ✓ = עומדת בכל התנאים לכניסה.</div><div id="watch"></div></div>
 </section>
 <section class="view" id="v-set">
   <div class="card"><b>איך הבוט מחליט</b><ul class="rules" id="rules"></ul></div>
@@ -110,7 +119,7 @@ svg text{font-family:inherit}
   <button data-v="home" class="on"><span class="ic">◎</span>סיכום</button>
   <button data-v="pos"><span class="ic">▤</span>תיק</button>
   <button data-v="trades"><span class="ic">⇄</span>עסקאות</button>
-  <button data-v="watch"><span class="ic">☆</span>מעקב</button>
+  <button data-v="watch"><span class="ic">☆</span>עכשיו</button>
   <button data-v="set"><span class="ic">⚙</span>הגדרות</button>
 </nav>
 
@@ -172,91 +181,90 @@ function render(){
   if (live){
     const meta = Object.fromEntries(S.positions.map(p=>[p.symbol,p]));
     positions = live.p.map(p => ({...(meta[p.symbol]||{name:p.symbol}), symbol:p.symbol, qty:+p.qty, avg:+p.avg_entry_price, price:+p.current_price,
-      value:+p.market_value, pl:+p.unrealized_pl, pl_pct:+p.unrealized_plpc, day_pct:+p.change_today})).sort((a,b)=>b.value-a.value);
+      value:+p.market_value, pl:+p.unrealized_pl, pl_pct:+p.unrealized_plpc})).sort((a,b)=>b.value-a.value);
   }
-  const st = S.start||{};
+  const st = S.start||{}, sx = S.stats||{};
   const total = st.equity ? acct.equity/st.equity-1 : 0;
   const day = acct.last_equity ? acct.equity/acct.last_equity-1 : 0;
-
   const when = new Date(S.generated_at);
   $('updated').textContent = (live ? 'נתונים חיים · ' : '') + 'עדכון בוט: ' + when.toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'});
   const pills = [];
   pills.push(S.mode==='live' ? '<span class="pill bad">כסף אמיתי</span>' : '<span class="pill ok">חשבון מדומה (Paper)</span>');
+  pills.push('<span class="pill">מסחר יומי</span>');
   pills.push(S.paused ? '<span class="pill warn">הבוט מושהה</span>' : '<span class="pill ok">הבוט פעיל</span>');
   pills.push(S.market_open ? '<span class="pill ok">השוק פתוח</span>' : '<span class="pill">השוק סגור</span>');
   $('pills').innerHTML = pills.join('');
 
   $('equity').textContent = usd(acct.equity);
-  $('k-total').textContent = pct(total); $('k-total').className = cls(total);
-  $('k-spy').textContent = pct(S.perf.spy); $('k-spy').className = cls(S.perf.spy);
   $('k-day').textContent = pct(day); $('k-day').className = cls(day);
-  $('cash').textContent = usd(acct.cash);
-  $('npos').textContent = positions.length;
-
+  $('k-total').textContent = pct(total); $('k-total').className = cls(total);
+  $('k-win').textContent = sx.win_rate==null ? '—' : Math.round(sx.win_rate*100)+'%';
+  $('t-pl').textContent = usd(sx.today_realized,0); $('t-pl').className = cls(sx.today_realized);
+  $('t-n').textContent = (sx.today_entries??0) + ' / ' + ((S.rules||{}).max_trades_per_day??'');
+  $('t-open').textContent = positions.length;
+  $('todayinfo').textContent = S.market_open ? 'המסחר פתוח עד 23:00 שעון ישראל' : 'השוק נפתח ב-16:30 שעון ישראל';
+  $('s-n').textContent = sx.trades ?? 0;
+  $('s-pl').textContent = usd(sx.realized,0); $('s-pl').className = 'ltr ' + cls(sx.realized);
+  $('s-avg').innerHTML = `<span class="up">${usd(sx.avg_win,0)}</span> / <span class="dn">${usd(sx.avg_loss,0)}</span>`;
   if (S.eval_date){
     const left = Math.ceil((new Date(S.eval_date) - new Date())/864e5);
     $('evalinfo').textContent = left>0 ? `עוד ${left} ימים לבדיקת החודשיים` : 'הגיע זמן הבדיקה!';
   }
   chart(S.history||[]);
+  const acts = (S.trades||[]).slice(0,5);
+  $('lastacts').innerHTML = acts.length ? acts.map(tradeRow).join('') :
+    '<div class="empty">עדיין אין עסקאות סגורות. הבוט נכנס לעסקאות רק אחרי 30 הדקות הראשונות של המסחר (בערך מ-17:00 שעון ישראל).</div>';
 
-  // last actions
-  const t0 = (S.trades||[]).slice(0,5);
-  $('lastacts').innerHTML = t0.length ? t0.map(tradeRow).join('') : '<div class="empty">עדיין אין עסקאות. הקנייה הראשונית תתבצע בהרצה הראשונה כשהשוק בניו יורק פתוח (16:30–23:00 שעון ישראל).</div>';
-
-  // positions
   $('positions').innerHTML = positions.length ? positions.map(p => {
-    const stopGap = p.stop && p.price ? (p.price - p.stop)/p.price : null;
-    const tgtUp = p.target && p.price ? p.target/p.price - 1 : null;
     const sell = live ? `<button class="mini" data-close="${esc(p.symbol)}">מכור</button>` : '';
     return `<div class="pos">
       <div class="row"><div><span class="sym ltr">${esc(p.symbol)}</span>${p.group==='IL'?'<span class="tag">ישראלית</span>':''}<div class="small">${esc(p.name)}</div></div>
-        <div style="text-align:left"><div class="ltr">${usd(p.value)}</div><div class="${cls(p.pl_pct)} ltr" style="font-size:13px">${pct(p.pl_pct)} (${usd(p.pl)})</div></div></div>
-      <div class="row small" style="margin-top:6px"><span>קנייה <span class="ltr">${usd(p.avg)}</span> · עכשיו <span class="ltr">${usd(p.price)}</span></span><span>היום <span class="${cls(p.day_pct)} ltr">${pct(p.day_pct)}</span></span></div>
-      <div class="row small" style="margin-top:3px"><span>סטופ <span class="ltr">${usd(p.stop)}</span>${stopGap!=null?` (<span class="ltr">${(stopGap*100).toFixed(1)}%</span> מתחת)`:''}</span><span>יעד <span class="ltr">${usd(p.target)}</span>${tgtUp!=null?` (<span class="ltr">${pct(tgtUp,0)}</span>)`:''}</span></div>
-      ${p.score!=null?`<div class="row small" style="margin-top:3px"><span>ציון קנייה ${Math.round(p.score)}${p.since?` · בתיק מ-${p.since}`:''}</span>${sell}</div>`:''}
-    </div>`;}).join('') : '<div class="empty">התיק עדיין ריק.</div>';
+        <div style="text-align:left"><div class="ltr">${usd(p.value)}</div><div class="${cls(p.pl_pct)} ltr" style="font-size:13px">${pct(p.pl_pct,2)} (${usd(p.pl)})</div></div></div>
+      <div class="row small" style="margin-top:6px"><span>כניסה <span class="ltr">${usd(p.avg)}</span>${p.since?` ב-${esc(p.since)} (ניו יורק)`:''}</span><span>עכשיו <span class="ltr">${usd(p.price)}</span></span></div>
+      <div class="row small" style="margin-top:3px"><span>סטופ <span class="ltr dn">${usd(p.stop)}</span></span><span>יעד <span class="ltr up">${usd(p.target)}</span></span></div>
+      ${p.why?`<div class="small" style="margin-top:3px">${esc(p.why)}</div>`:''}
+      ${sell?`<div style="text-align:left;margin-top:4px">${sell}</div>`:''}
+    </div>`;}).join('') : '<div class="empty">אין עסקאות פתוחות כרגע. הבוט מסיים כל יום במזומן.</div>';
   document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => closePos(b.dataset.close, b));
 
-  // trades
   $('trades').innerHTML = (S.trades||[]).length ? S.trades.map(tradeRow).join('') : '<div class="empty">אין עסקאות עדיין.</div>';
 
-  // watchlist
-  $('watch').innerHTML = (S.watchlist||[]).map(w => `<div class="pos"><div class="row"><div><span class="sym ltr">${esc(w.symbol)}</span>${w.group==='IL'?'<span class="tag">ישראלית</span>':''}<div class="small">${esc(w.name)}</div></div>
-     <div style="text-align:left"><b>${Math.round(w.score)}</b><div class="small ltr">${usd(w.price)} → ${usd(w.target)}</div></div></div>
-     <div class="bar"><i style="right:0;width:${Math.max(2,Math.min(100,w.score))}%;background:${w.score>=60?'var(--up)':'var(--warn)'}"></i></div></div>`).join('') || '<div class="empty">אין נתונים.</div>';
+  const cands = S.candidates||[];
+  $('watch').innerHTML = cands.length ? cands.map(c => `<div class="pos"><div class="row"><div><span class="sym ltr">${esc(c.symbol)}</span>${c.signal?'<span class="tag" style="color:var(--up)">✓ כניסה</span>':c.breakout?'<span class="tag">פריצה</span>':''}<div class="small">${esc(c.name)}</div></div>
+     <div style="text-align:left"><div class="ltr">${usd(c.price)}</div><div class="small ltr ${cls(c.chg)}">${pct(c.chg)} היום</div></div></div>
+     <div class="row small" style="margin-top:4px"><span>מול S&amp;P <span class="ltr ${cls(c.rs)}">${pct(c.rs)}</span></span><span>טווח פתיחה <span class="ltr">${usd(c.or_low)}–${usd(c.or_high)}</span></span></div></div>`).join('')
+    : '<div class="empty">יוצג בזמן המסחר.</div>';
 
-  // rules
   const r = S.rules||{};
   $('rules').innerHTML = [
-    `בונה תיק של עד <b>${r.max_positions}</b> מניות מרשימת מניות ה-Buy, בחלוקה שווה, ומשאיר <b>${Math.round((r.cash_reserve||0)*100)}%</b> במזומן.`,
-    `קונה רק מניה עם ציון קנייה <b>${r.min_buy_score}</b> ומעלה (מגמה, מומנטום, תיקון בריא, תנודתיות ופער ליעד האנליסטים). בקנייה הראשונית לפחות ${r.min_israeli_in_initial} ישראליות אם יש מתאימות.`,
-    `<b>סטופ-לוס:</b> מוכר אם המניה ירדה ${Math.round(r.stop_loss*100)}% ממחיר הקנייה.`,
-    `<b>סטופ נגרר:</b> מוכר אם המניה ירדה ${Math.round(r.trailing_stop*100)}% מהשיא שלה מאז הקנייה (שומר על רווחים).`,
-    `<b>מימוש רווח:</b> מוכר כשהמחיר מגיע ליעד הממוצע של האנליסטים.`,
-    `מוכר אם ציון הקנייה צונח מתחת ל-${r.sell_score_below}, ולא חוזר לאותה מניה ${r.cooldown_days} ימים.`,
-    `לכל היותר ${r.max_new_buys_per_day} קניות חדשות ביום. רץ פעמיים ביום מסחר: ~17:05 (קנייה+מכירה) ו-~21:35 (בדיקת סטופים) שעון ישראל.`
+    `<b>מסחר יומי:</b> כל עסקה נפתחת ונסגרת באותו יום. ${r.flatten_min_before_close} דקות לפני הסגירה הבוט מוכר הכול ונשאר במזומן.`,
+    `<b>מתי נכנס:</b> אחרי ${r.opening_range_min} הדקות הראשונות. מניה מרשימת ה-Buy שפורצת מעל הטווח של אותן דקות, נמצאת מעל המחיר הממוצע של היום (VWAP), וחזקה היום יותר מה-S&amp;P 500. אם ה-S&amp;P עצמו חלש, לא נכנסים.`,
+    `<b>יציאה:</b> סטופ באמצע טווח הפתיחה (בין ${(r.min_stop_pct*100).toFixed(1)}% ל-${(r.max_stop_pct*100).toFixed(1)}% מתחת לכניסה), יעד רווח פי ${r.reward_risk} מהסיכון. שניהם יושבים אצל Alpaca ומתבצעים מיד, גם בין ההרצות.`,
+    `<b>סיכון:</b> עד ${(r.risk_per_trade*100).toFixed(1)}% מהתיק בכל עסקה, עד ${Math.round(r.max_position_pct*100)}% מהתיק במניה אחת, עד ${r.max_open} עסקאות פתוחות ו-${r.max_trades_per_day} ביום. הפסד של ${Math.round(r.daily_loss_limit*100)}% ביום עוצר כניסות חדשות עד מחר.`,
+    `אין כניסות חדשות ב-${r.no_new_entries_min_before_close} הדקות האחרונות. הבוט רץ כל 10 דקות בשעות המסחר (16:30–23:00 שעון ישראל).`
   ].map(x=>`<li>${x}</li>`).join('');
 }
 function tradeRow(t){
-  return `<div class="tr"><div class="side ${t.side}">${t.side==='buy'?'קנייה':'מכירה'}</div>
-    <div style="flex:1"><div class="row"><span><span class="sym ltr">${esc(t.symbol)}</span> <span class="small">${esc(t.name)}</span></span><span class="ltr">${usd(t.amount,0)}</span></div>
-    <div class="small">${esc(t.reason)}</div><div class="small ltr" style="text-align:right">${esc(t.date)} ${esc(t.time)} UTC · @ ${usd(t.price)}</div></div></div>`;
+  if (t.side) return '';   // old long-term trades
+  const win = t.pl >= 0;
+  return `<div class="tr"><div class="side ${win?'buy':'sell'}">${win?'רווח':'הפסד'}</div>
+    <div style="flex:1"><div class="row"><span><span class="sym ltr">${esc(t.symbol)}</span> <span class="small">${esc(t.name)}</span></span><span class="ltr ${cls(t.pl)}">${usd(t.pl,0)}</span></div>
+    <div class="small"><span class="ltr">${usd(t.entry)} → ${usd(t.exit)}</span> (<span class="ltr">${pct(t.pl_pct,2)}</span>) · ${esc(t.exit_reason)}</div>
+    <div class="small">${esc(t.date)}${t.in?' · כניסה '+esc(t.in)+' ניו יורק':''}</div></div></div>`;
 }
 function chart(h){
   const el = $('chart');
   if (!h.length || h.length < 2){ el.innerHTML = '<div class="empty">הגרף יופיע אחרי יומיים של מסחר.</div>'; return; }
-  const W=340,H=150,P=6, e0=h[0].eq, s0=h.find(x=>x.spy)?.spy;
-  const a = h.map(x=>x.eq/e0-1), b = h.map(x=>s0&&x.spy? x.spy/s0-1 : null);
-  const all = a.concat(b.filter(v=>v!=null), [0]);
-  let lo=Math.min(...all), hi=Math.max(...all); if(hi-lo<0.01){hi+=0.005;lo-=0.005}
+  const W=340,H=150,P=6, e0=h[0].eq;
+  const a = h.map(x=>x.eq/e0-1);
+  let lo=Math.min(...a,0), hi=Math.max(...a,0); if(hi-lo<0.01){hi+=0.005;lo-=0.005}
   const X=i=>P+i*(W-2*P)/(h.length-1), Y=v=>H-P-(v-lo)/(hi-lo)*(H-2*P);
-  const path=arr=>arr.map((v,i)=>v==null?'':`${i&&arr[i-1]!=null?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  const d=a.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
   el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;margin-top:8px;direction:ltr">
     <line x1="${P}" x2="${W-P}" y1="${Y(0)}" y2="${Y(0)}" stroke="#30363d" stroke-dasharray="3 4"/>
-    <path d="${path(b)}" fill="none" stroke="#8b949e" stroke-width="1.8"/>
-    <path d="${path(a)}" fill="none" stroke="#58a6ff" stroke-width="2.6" stroke-linejoin="round"/>
-    <text x="${P}" y="12" text-anchor="start" font-size="10" fill="#8b949e">${pct(hi)}</text>
-    <text x="${W-P}" y="${H-2}" text-anchor="end" font-size="10" fill="#8b949e">${pct(lo)}</text>
+    <path d="${d}" fill="none" stroke="#58a6ff" stroke-width="2.6" stroke-linejoin="round"/>
+    <text x="${P}" y="12" font-size="10" fill="#8b949e">${pct(hi)}</text>
+    <text x="${P}" y="${H-2}" font-size="10" fill="#8b949e">${pct(lo)}</text>
     <text x="${W/2}" y="${H-2}" text-anchor="middle" font-size="10" fill="#8b949e">מאז ${h[0].d}</text></svg>`;
 }
 async function closePos(sym, btn){
