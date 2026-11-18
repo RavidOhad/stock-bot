@@ -1,25 +1,24 @@
 {
  "version": 2,
  "strategy": "daytrade",
- "generated_at": "2026-11-18T07:46-05:00",
+ "generated_at": "2026-11-18T10:01-05:00",
  "mode": "paper",
  "paused": false,
- "market_open": false,
- "next_open": "2026-11-18T09:30:00-05:00",
+ "market_open": true,
+ "next_open": "2026-11-19T09:30:00-05:00",
  "account": {
-  "equity": 106453.03,
+  "equity": 106355.61,
   "cash": 80462.17,
   "last_equity": 106531.15
  },
  "start": {
-  "date": "2026-11-10",
-  "equity": 106952.77,
-  "spy": 747.96
+  "date": "2026-11-18",
+  "equity": 106354.67
  },
- "eval_date": "2027-01-09",
+ "eval_date": "2027-01-17",
  "perf": {
-  "total": -0.004672529753086407,
-  "day": -0.0007333066431742807
+  "total": 8.838351903239783e-06,
+  "day": -0.0016477809542091437
  },
  "stats": {
   "trades": 0,
@@ -39,14 +38,14 @@
    "group": "",
    "qty": 13.0,
    "avg": 75.01,
-   "price": 81.27,
-   "value": 1056.51,
-   "pl": 81.38,
-   "pl_pct": 0.08346,
+   "price": 80.99,
+   "value": 1052.87,
+   "pl": 77.74,
+   "pl_pct": 0.07972,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "AMGN",
@@ -54,29 +53,14 @@
    "group": "",
    "qty": 3.0,
    "avg": 310.03,
-   "price": 454.0,
-   "value": 1362.0,
-   "pl": 431.91,
-   "pl_pct": 0.46437,
+   "price": 450.99,
+   "value": 1352.97,
+   "pl": 422.88,
+   "pl_pct": 0.45467,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
-  },
-  {
-   "symbol": "BAC",
-   "name": "Bank of America",
-   "group": "US",
-   "qty": 25.0,
-   "avg": 39.74,
-   "price": 49.3,
-   "value": 1232.5,
-   "pl": 239.0,
-   "pl_pct": 0.24056,
-   "stop": null,
-   "target": null,
-   "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "BR",
@@ -84,14 +68,14 @@
    "group": "",
    "qty": 5.0,
    "avg": 193.22,
-   "price": 188.0,
-   "value": 940.0,
-   "pl": -26.1,
-   "pl_pct": -0.02702,
+   "price": 186.55,
+   "value": 932.75,
+   "pl": -33.35,
+   "pl_pct": -0.03452,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "COP",
@@ -99,14 +83,14 @@
    "group": "",
    "qty": 8.0,
    "avg": 112.08,
-   "price": 138.41,
-   "value": 1107.28,
-   "pl": 210.64,
-   "pl_pct": 0.23492,
+   "price": 137.49,
+   "value": 1099.92,
+   "pl": 203.28,
+   "pl_pct": 0.22671,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "DIS",
@@ -114,29 +98,14 @@
    "group": "",
    "qty": 9.0,
    "avg": 102.42,
-   "price": 117.3,
-   "value": 1055.7,
-   "pl": 133.92,
-   "pl_pct": 0.14528,
+   "price": 119.3425,
+   "value": 1074.0825,
+   "pl": 152.3025,
+   "pl_pct": 0.16523,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
-  },
-  {
-   "symbol": "GS",
-   "name": "Goldman Sachs",
-   "group": "US",
-   "qty": 2.0,
-   "avg": 451.5,
-   "price": 880.0,
-   "value": 1760.0,
-   "pl": 857.0,
-   "pl_pct": 0.94906,
-   "stop": null,
-   "target": null,
-   "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "HD",
@@ -144,14 +113,14 @@
    "group": "",
    "qty": 4.0,
    "avg": 349.295,
-   "price": 334.25,
-   "value": 1337.0,
-   "pl": -60.18,
-   "pl_pct": -0.04307,
+   "price": 336.86,
+   "value": 1347.44,
+   "pl": -49.74,
+   "pl_pct": -0.0356,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "JNJ",
@@ -159,14 +128,14 @@
    "group": "",
    "qty": 6.0,
    "avg": 149.07,
-   "price": 276.9,
-   "value": 1661.4,
-   "pl": 766.98,
-   "pl_pct": 0.85752,
+   "price": 276.53,
+   "value": 1659.18,
+   "pl": 764.76,
+   "pl_pct": 0.85503,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "JPM",
@@ -174,14 +143,14 @@
    "group": "US",
    "qty": 5.0,
    "avg": 197.71,
-   "price": 331.0,
-   "value": 1655.0,
-   "pl": 666.45,
-   "pl_pct": 0.67417,
+   "price": 329.05,
+   "value": 1645.25,
+   "pl": 656.7,
+   "pl_pct": 0.66431,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "MDT",
@@ -189,14 +158,14 @@
    "group": "",
    "qty": 12.0,
    "avg": 80.56,
-   "price": 101.6,
-   "value": 1219.2,
-   "pl": 252.48,
-   "pl_pct": 0.26117,
+   "price": 101.18,
+   "value": 1214.16,
+   "pl": 247.44,
+   "pl_pct": 0.25596,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "MMM",
@@ -204,29 +173,14 @@
    "group": "",
    "qty": 9.0,
    "avg": 102.088889,
-   "price": 181.2,
-   "value": 1630.8,
-   "pl": 711.999999,
-   "pl_pct": 0.77492,
+   "price": 179.1,
+   "value": 1611.9,
+   "pl": 693.099999,
+   "pl_pct": 0.75435,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
-  },
-  {
-   "symbol": "MO",
-   "name": "MO",
-   "group": "",
-   "qty": 21.0,
-   "avg": 45.96,
-   "price": 76.75,
-   "value": 1611.75,
-   "pl": 646.59,
-   "pl_pct": 0.66993,
-   "stop": null,
-   "target": null,
-   "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "MSFT",
@@ -234,14 +188,14 @@
    "group": "US",
    "qty": 2.0,
    "avg": 441.328333,
-   "price": 505.18,
-   "value": 1010.36,
-   "pl": 127.703334,
-   "pl_pct": 0.14468,
+   "price": 505.86,
+   "value": 1011.72,
+   "pl": 129.063334,
+   "pl_pct": 0.14622,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "PG",
@@ -256,7 +210,7 @@
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "SAP",
@@ -264,14 +218,14 @@
    "group": "",
    "qty": 5.0,
    "avg": 187.81,
-   "price": 219.38,
-   "value": 1096.9,
-   "pl": 157.85,
-   "pl_pct": 0.1681,
+   "price": 213.95,
+   "value": 1069.75,
+   "pl": 130.7,
+   "pl_pct": 0.13918,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "SLB",
@@ -279,14 +233,14 @@
    "group": "",
    "qty": 21.0,
    "avg": 45.93,
-   "price": 48.81,
-   "value": 1025.01,
-   "pl": 60.48,
-   "pl_pct": 0.0627,
+   "price": 49.18,
+   "value": 1032.78,
+   "pl": 68.25,
+   "pl_pct": 0.07076,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "TXN",
@@ -294,14 +248,14 @@
    "group": "",
    "qty": 5.0,
    "avg": 195.63,
-   "price": 299.0,
-   "value": 1495.0,
-   "pl": 516.85,
-   "pl_pct": 0.5284,
+   "price": 295.38,
+   "value": 1476.9,
+   "pl": 498.75,
+   "pl_pct": 0.50989,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "USB",
@@ -309,14 +263,14 @@
    "group": "",
    "qty": 25.0,
    "avg": 39.79,
-   "price": 59.2,
-   "value": 1480.0,
-   "pl": 485.25,
-   "pl_pct": 0.48781,
+   "price": 58.69,
+   "value": 1467.25,
+   "pl": 472.5,
+   "pl_pct": 0.47499,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   },
   {
    "symbol": "WFC",
@@ -324,25 +278,46 @@
    "group": "",
    "qty": 17.0,
    "avg": 58.57,
-   "price": 82.5,
-   "value": 1402.5,
-   "pl": 406.81,
-   "pl_pct": 0.40857,
+   "price": 81.87,
+   "value": 1391.79,
+   "pl": 396.1,
+   "pl_pct": 0.39781,
    "stop": null,
    "target": null,
    "since": null,
-   "why": ""
+   "why": "פוזיציה קודמת"
   }
  ],
  "history": [
   {
    "d": "2026-11-18",
-   "eq": 106453.03
+   "eq": 106355.61
   }
  ],
  "trades": [],
  "candidates": [],
- "actions": [],
+ "actions": [
+  "מכירה AIG – מעבר למסחר יומי",
+  "מכירה AMGN – מעבר למסחר יומי",
+  "מכירה BAC – מעבר למסחר יומי",
+  "מכירה BR – מעבר למסחר יומי",
+  "מכירה COP – מעבר למסחר יומי",
+  "מכירה DIS – מעבר למסחר יומי",
+  "מכירה GS – מעבר למסחר יומי",
+  "מכירה HD – מעבר למסחר יומי",
+  "מכירה JNJ – מעבר למסחר יומי",
+  "מכירה JPM – מעבר למסחר יומי",
+  "מכירה MDT – מעבר למסחר יומי",
+  "מכירה MMM – מעבר למסחר יומי",
+  "מכירה MO – מעבר למסחר יומי",
+  "מכירה MSFT – מעבר למסחר יומי",
+  "מכירה PG – מעבר למסחר יומי",
+  "מכירה SAP – מעבר למסחר יומי",
+  "מכירה SLB – מעבר למסחר יומי",
+  "מכירה TXN – מעבר למסחר יומי",
+  "מכירה USB – מעבר למסחר יומי",
+  "מכירה WFC – מעבר למסחר יומי"
+ ],
  "rules": {
   "paused": false,
   "mode": "paper",
@@ -364,11 +339,30 @@
   "eval_days": 60
  },
  "last_run": {
-  "at": "2026-11-18T07:46-05:00",
+  "at": "2026-11-18T10:01-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-18 07:46 NY | equity $106,453.03 cash $80,462.17 | open positions 20 | market closed",
-   "Market closed – snapshot only."
+   "2026-11-18 10:01 NY | equity $106,354.67 cash $80,462.17 | open positions 20 | market OPEN",
+   "CLOSE AIG | מעבר למסחר יומי",
+   "CLOSE AMGN | מעבר למסחר יומי",
+   "CLOSE BAC | מעבר למסחר יומי",
+   "CLOSE BR | מעבר למסחר יומי",
+   "CLOSE COP | מעבר למסחר יומי",
+   "CLOSE DIS | מעבר למסחר יומי",
+   "CLOSE GS | מעבר למסחר יומי",
+   "CLOSE HD | מעבר למסחר יומי",
+   "CLOSE JNJ | מעבר למסחר יומי",
+   "CLOSE JPM | מעבר למסחר יומי",
+   "CLOSE MDT | מעבר למסחר יומי",
+   "CLOSE MMM | מעבר למסחר יומי",
+   "CLOSE MO | מעבר למסחר יומי",
+   "CLOSE MSFT | מעבר למסחר יומי",
+   "CLOSE PG | מעבר למסחר יומי",
+   "CLOSE SAP | מעבר למסחר יומי",
+   "CLOSE SLB | מעבר למסחר יומי",
+   "CLOSE TXN | מעבר למסחר יומי",
+   "CLOSE USB | מעבר למסחר יומי",
+   "CLOSE WFC | מעבר למסחר יומי"
   ]
  }
 }
