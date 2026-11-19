@@ -1,10 +1,10 @@
 {
  "version": 2,
  "strategy": "daytrade",
- "generated_at": "2026-11-19T10:02-05:00",
+ "generated_at": "2026-11-19T16:05-05:00",
  "mode": "paper",
  "paused": false,
- "market_open": true,
+ "market_open": false,
  "next_open": "2026-11-20T09:30:00-05:00",
  "account": {
   "equity": 106338.69,
@@ -304,164 +304,7 @@
    "exit_reason": "מעבר למסחר יומי"
   }
  ],
- "candidates": [
-  {
-   "symbol": "COHR",
-   "name": "Coherent",
-   "group": "US",
-   "price": 238.23,
-   "chg": 0.1193440774326926,
-   "rs": 0.111279230034941,
-   "or_high": 237.75,
-   "or_low": 225.22,
-   "vwap": 234.54,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "WDC",
-   "name": "Western Digital",
-   "group": "US",
-   "price": 314.53,
-   "chg": 0.09166319589060112,
-   "rs": 0.08359834849284953,
-   "or_high": 313.49,
-   "or_low": 301.98,
-   "vwap": 309.36,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "BE",
-   "name": "Bloom Energy",
-   "group": "US",
-   "price": 185.37,
-   "chg": 0.08495507886804599,
-   "rs": 0.07689023147029439,
-   "or_high": 184.39,
-   "or_low": 178.68,
-   "vwap": 182.0,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "APH",
-   "name": "Amphenol",
-   "group": "US",
-   "price": 78.64,
-   "chg": 0.030598873017952943,
-   "rs": 0.022534025620201348,
-   "or_high": 78.42,
-   "or_low": 77.4,
-   "vwap": 78.07,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "RBRK",
-   "name": "Rubrik",
-   "group": "US",
-   "price": 121.36,
-   "chg": 0.10332757523411229,
-   "rs": 0.0952627278363607,
-   "or_high": 123.45,
-   "or_low": 115.18,
-   "vwap": 120.74,
-   "breakout": false,
-   "signal": false
-  },
-  {
-   "symbol": "ALAB",
-   "name": "Astera Labs",
-   "group": "US",
-   "price": 235.12,
-   "chg": 0.08490217792543375,
-   "rs": 0.07683733052768216,
-   "or_high": 236.43,
-   "or_low": 227,
-   "vwap": 232.92,
-   "breakout": false,
-   "signal": false
-  },
-  {
-   "symbol": "DDOG",
-   "name": "Datadog",
-   "group": "US",
-   "price": 181.05,
-   "chg": 0.08383968391750751,
-   "rs": 0.07577483651975592,
-   "or_high": 182.27,
-   "or_low": 174.02,
-   "vwap": 179.63,
-   "breakout": false,
-   "signal": false
-  },
-  {
-   "symbol": "CRWV",
-   "name": "CoreWeave",
-   "group": "US",
-   "price": 51.84,
-   "chg": 0.08349879820252903,
-   "rs": 0.07543395080477744,
-   "or_high": 52.84,
-   "or_low": 50.13,
-   "vwap": 51.68,
-   "breakout": false,
-   "signal": false
-  },
-  {
-   "symbol": "INTC",
-   "name": "Intel",
-   "group": "US",
-   "price": 59.15,
-   "chg": 0.08174835405998526,
-   "rs": 0.07368350666223367,
-   "or_high": 59.2,
-   "or_low": 57.3,
-   "vwap": 58.58,
-   "breakout": false,
-   "signal": false
-  },
-  {
-   "symbol": "PANW",
-   "name": "Palo Alto Networks",
-   "group": "US",
-   "price": 365.69,
-   "chg": 0.07657206782854442,
-   "rs": 0.06850722043079283,
-   "or_high": 370,
-   "or_low": 354.2,
-   "vwap": 364.12,
-   "breakout": false,
-   "signal": false
-  },
-  {
-   "symbol": "AXON",
-   "name": "Axon Enterprise",
-   "group": "US",
-   "price": 323.02,
-   "chg": 0.07436971994944441,
-   "rs": 0.06630487255169282,
-   "or_high": 323.42,
-   "or_low": 306.51,
-   "vwap": 318.56,
-   "breakout": false,
-   "signal": false
-  },
-  {
-   "symbol": "CRWD",
-   "name": "CrowdStrike",
-   "group": "US",
-   "price": 254.31,
-   "chg": 0.07321910871033088,
-   "rs": 0.06515426131257929,
-   "or_high": 256.45,
-   "or_low": 245.15,
-   "vwap": 252.28,
-   "breakout": false,
-   "signal": false
-  }
- ],
+ "candidates": [],
  "actions": [],
  "rules": {
   "paused": false,
@@ -484,12 +327,11 @@
   "eval_days": 60
  },
  "last_run": {
-  "at": "2026-11-19T10:02-05:00",
+  "at": "2026-11-19T16:05-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-19 10:02 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
-   "Daily filter: 167 liquid stocks ≥ $10",
-   "SPY below its VWAP – market filter blocks new long entries."
+   "2026-11-19 16:05 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
+   "Market closed – snapshot only."
   ]
  }
 }

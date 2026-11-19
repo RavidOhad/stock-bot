@@ -276,12 +276,11 @@
   }
  ],
  "last_run": {
-  "at": "2026-11-19T10:02-05:00",
+  "at": "2026-11-19T16:05-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-19 10:02 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
-   "Daily filter: 167 liquid stocks ≥ $10",
-   "SPY below its VWAP – market filter blocks new long entries."
+   "2026-11-19 16:05 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
+   "Market closed – snapshot only."
   ]
  },
  "swing_trades": [
