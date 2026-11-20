@@ -273,14 +273,18 @@
   {
    "d": "2026-11-19",
    "eq": 106338.69
+  },
+  {
+   "d": "2026-11-20",
+   "eq": 106338.69
   }
  ],
  "last_run": {
-  "at": "2026-11-19T16:05-05:00",
+  "at": "2026-11-20T15:52-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-19 16:05 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
-   "Market closed – snapshot only."
+   "2026-11-20 15:52 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
+   "End of day – already flat."
   ]
  },
  "swing_trades": [
@@ -393,6 +397,11 @@
    "symbols": []
   },
   "2026-11-19": {
+   "start_equity": 106338.69,
+   "entries": 0,
+   "symbols": []
+  },
+  "2026-11-20": {
    "start_equity": 106338.69,
    "entries": 0,
    "symbols": []
