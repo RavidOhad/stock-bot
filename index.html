@@ -94,6 +94,9 @@ svg text{font-family:inherit}
     <div class="row" style="margin-top:6px"><span>רווח ממוצע / הפסד ממוצע</span><span class="ltr" id="s-avg">—</span></div>
   </div>
   <div class="card"><b>מה הבוט עשה לאחרונה</b><div id="lastacts"></div></div>
+  <div class="card"><b>בדיקת הבוט – ימים אחרונים</b>
+    <div class="small" style="margin:4px 0 6px">כמה פעמים הבוט רץ בזמן המסחר, כמה מניות עמדו בכל התנאים, ולמה לא נכנס.</div>
+    <div id="diag"></div></div>
 </section>
 
 <section class="view" id="v-pos"><div class="card" id="positions"></div></section>
@@ -235,10 +238,20 @@ function render(){
      <div class="row small" style="margin-top:4px"><span>מול S&amp;P <span class="ltr ${cls(c.rs)}">${pct(c.rs)}</span></span><span>טווח פתיחה <span class="ltr">${usd(c.or_low)}–${usd(c.or_high)}</span></span></div></div>`).join('')
     : '<div class="empty">יוצג בזמן המסחר.</div>';
 
+  const D = S.diag||[];
+  $('diag').innerHTML = D.length ? D.map(d => {
+    const fn = d.funnel||{};
+    return `<div class="pos"><div class="row"><b class="ltr">${esc(d.date)}</b><span class="small">${d.entries||0} כניסות</span></div>
+      <div class="small">ריצות בזמן מסחר: ${d.market_runs||0}${d.first_run?` (<span class="ltr">${esc(d.first_run)}–${esc(d.last_run)}</span> ניו יורק)`:''}</div>
+      ${d.funnel?`<div class="small">S&amp;P היום: <span class="ltr ${cls(d.spy_chg)}">${pct(d.spy_chg)}</span> · שיא אותות: ${d.max_signals||0}</div>
+      <div class="small">פריצה ${fn.breakout??0} ← מעל VWAP ${fn.above_vwap??0} ← חזקה מהשוק ${fn.stronger??0} ← בלי מרדף ${fn.not_chasing??0} (מתוך ${fn.liquid??0})</div>`:''}
+      ${d.block?`<div class="small" style="color:var(--warn)">${esc(d.block)}</div>`:''}</div>`;}).join('')
+    : '<div class="empty">יופיע אחרי יום המסחר הבא.</div>';
+
   const r = S.rules||{};
   $('rules').innerHTML = [
     `<b>מסחר יומי:</b> כל עסקה נפתחת ונסגרת באותו יום. ${r.flatten_min_before_close} דקות לפני הסגירה הבוט מוכר הכול ונשאר במזומן.`,
-    `<b>מתי נכנס:</b> אחרי ${r.opening_range_min} הדקות הראשונות. מניה מרשימת ה-Buy שפורצת מעל הטווח של אותן דקות, נמצאת מעל המחיר הממוצע של היום (VWAP), וחזקה היום יותר מה-S&amp;P 500. אם ה-S&amp;P עצמו חלש, לא נכנסים.`,
+    `<b>מתי נכנס:</b> אחרי ${r.opening_range_min} הדקות הראשונות. מניה מרשימת ה-Buy שפורצת מעל הטווח של אותן דקות, נמצאת מעל המחיר הממוצע של היום (VWAP), וחזקה היום יותר מה-S&amp;P 500. אם ה-S&amp;P יורד היום יותר מ-${((r.market_max_drop||0.005)*100).toFixed(1)}%, לא נכנסים.`,
     `<b>יציאה:</b> סטופ באמצע טווח הפתיחה (בין ${(r.min_stop_pct*100).toFixed(1)}% ל-${(r.max_stop_pct*100).toFixed(1)}% מתחת לכניסה), יעד רווח פי ${r.reward_risk} מהסיכון. שניהם יושבים אצל Alpaca ומתבצעים מיד, גם בין ההרצות.`,
     `<b>סיכון:</b> עד ${(r.risk_per_trade*100).toFixed(1)}% מהתיק בכל עסקה, עד ${Math.round(r.max_position_pct*100)}% מהתיק במניה אחת, עד ${r.max_open} עסקאות פתוחות ו-${r.max_trades_per_day} ביום. הפסד של ${Math.round(r.daily_loss_limit*100)}% ביום עוצר כניסות חדשות עד מחר.`,
     `אין כניסות חדשות ב-${r.no_new_entries_min_before_close} הדקות האחרונות. הבוט רץ כל 10 דקות בשעות המסחר (16:30–23:00 שעון ישראל).`

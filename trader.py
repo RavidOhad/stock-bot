@@ -220,6 +220,8 @@ def run(api, cfg, state, uni):
         return finish(api, cfg, state, uni, clock, now_ny, [], actions)
 
     mins_open = (now_ny - now_ny.replace(hour=9, minute=30, second=0, microsecond=0)).total_seconds() / 60
+    day.setdefault("market_runs", []).append(f"{now_ny:%H:%M}")
+    day["market_runs"] = day["market_runs"][-80:]
     mins_close = (parse_ts(clock["next_close"]) - now_ny).total_seconds() / 60
 
     # 0. one-time switch from the old long-term portfolio
@@ -269,6 +271,14 @@ def run(api, cfg, state, uni):
         log(f"Daily loss limit reached ({day_pl:.2%}) – no new entries today."); can_enter = False
     elif day["entries"] >= cfg["max_trades_per_day"]:
         log("Max trades for today reached."); can_enter = False
+    pre_block = None
+    if not can_enter:
+        last = LOG[-1]
+        pre_block = ("הבוט מושהה" if last.startswith("Paused") else
+                     "30 הדקות הראשונות – עדיין לא נכנסים" if last.startswith("Opening range") else
+                     "שעה וחצי אחרונה – בלי כניסות חדשות" if last.startswith("Too close") else
+                     "הגיע להפסד היומי המקסימלי – עצר כניסות" if last.startswith("Daily loss") else
+                     "הגיע למספר העסקאות המקסימלי היום" if last.startswith("Max trades") else last)
 
     ok, prev = daily_filter(api, uni, cfg, state, today)
     open_utc = now_ny.replace(hour=9, minute=30, second=0, microsecond=0).astimezone(timezone.utc)
@@ -277,7 +287,15 @@ def run(api, cfg, state, uni):
         ib = api.bars(ok + [BENCH], "5Min", open_utc.strftime("%Y-%m-%dT%H:%M:%SZ"))
         spy = intraday_stats(ib.get(BENCH), open_utc, or_end)
         spy_chg = (spy["last"] / prev[BENCH] - 1) if spy and prev.get(BENCH) else 0
-        spy_ok = bool(spy and spy["last"] > spy["vwap"])
+        # market filter: "vwap" = SPY above its VWAP (strict), "soft" = SPY not down more than market_max_drop today, "off"
+        mf = cfg.get("market_filter", "soft")
+        if mf == "vwap":
+            spy_ok = bool(spy and spy["last"] > spy["vwap"])
+        elif mf == "soft":
+            spy_ok = spy_chg > -cfg.get("market_max_drop", 0.005)
+        else:
+            spy_ok = True
+        cnt = {"liquid": len(ok), "with_data": 0, "breakout": 0, "above_vwap": 0, "stronger": 0, "not_chasing": 0, "signals": 0}
         for s in ok:
             st = intraday_stats(ib.get(s), open_utc, or_end)
             if not st or not prev.get(s):
@@ -288,13 +306,33 @@ def run(api, cfg, state, uni):
             chase = st["last"] / st["or_high"] - 1
             sig = (st["or_done"] and brk and st["last"] > st["vwap"] and rs > 0 and chase <= cfg["max_chase"]
                    and s not in day["symbols"] and s not in positions and s not in pending)
+            cnt["with_data"] += 1
+            if brk:
+                cnt["breakout"] += 1
+                if st["last"] > st["vwap"]:
+                    cnt["above_vwap"] += 1
+                    if rs > 0:
+                        cnt["stronger"] += 1
+                        if chase <= cfg["max_chase"]:
+                            cnt["not_chasing"] += 1
+            cnt["signals"] += bool(sig)
             candidates.append({"symbol": s, "name": uni[s]["name"], "group": uni[s]["group"], "price": round(st["last"], 2),
                                "chg": chg, "rs": rs, "or_high": round(st["or_high"], 2), "or_low": round(st["or_low"], 2),
                                "vwap": round(st["vwap"], 2), "breakout": brk, "signal": bool(sig), "_st": st})
         candidates.sort(key=lambda c: (not c["signal"], -c["rs"]))
+        block = None
         if can_enter and not spy_ok:
-            log("SPY below its VWAP – market filter blocks new long entries.")
+            log(f"Market filter ({mf}): SPY {spy_chg:+.2%} today – no new long entries.")
+            block = f"השוק חלש היום (S&P {spy_chg * 100:+.1f}%) – לא נכנסים"
             can_enter = False
+        log("Funnel: " + ", ".join(f"{k} {v}" for k, v in cnt.items()))
+        dg = day.setdefault("diag", {"runs": 0})
+        dg.update({"runs": dg.get("runs", 0) + 1, "last": f"{now_ny:%H:%M}",
+                   "spy_chg": round(spy_chg, 4), "spy_vs_vwap": round(spy["last"] / spy["vwap"] - 1, 4) if spy else None,
+                   "max_signals": max(dg.get("max_signals", 0), cnt["signals"]), "funnel": cnt,
+                   "block": block or pre_block or ""})
+        if cnt["signals"] and not dg.get("first_signal"):
+            dg["first_signal"] = f"{now_ny:%H:%M}"
         if can_enter:
             slots = min(cfg["max_open"] - len(positions) - len(pending),
                         cfg["max_trades_per_day"] - day["entries"])
@@ -430,6 +468,10 @@ def finish(api, cfg, state, uni, clock, now_ny, candidates, actions):
         "trades": list(reversed(trades))[:80],
         "candidates": [{k: v for k, v in c.items() if k != "_st"} for c in candidates[:12]],
         "actions": actions,
+        "diag": [{"date": d, "entries": v.get("entries", 0), "market_runs": len(v.get("market_runs", [])),
+                  "first_run": (v.get("market_runs") or [""])[0], "last_run": (v.get("market_runs") or [""])[-1],
+                  **(v.get("diag") or {"runs": 0})}
+                 for d, v in sorted(state["days"].items(), reverse=True)[:7]],
         "rules": cfg,
         "last_run": state["last_run"],
     }
