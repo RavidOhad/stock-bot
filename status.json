@@ -1,11 +1,11 @@
 {
  "version": 2,
  "strategy": "daytrade",
- "generated_at": "2026-11-20T15:52-05:00",
+ "generated_at": "2026-11-23T19:30-05:00",
  "mode": "paper",
  "paused": false,
- "market_open": true,
- "next_open": "2026-11-23T09:30:00-05:00",
+ "market_open": false,
+ "next_open": "2026-11-24T09:30:00-05:00",
  "account": {
   "equity": 106338.69,
   "cash": 106338.69,
@@ -43,6 +43,10 @@
   },
   {
    "d": "2026-11-20",
+   "eq": 106338.69
+  },
+  {
+   "d": "2026-11-23",
    "eq": 106338.69
   }
  ],
@@ -331,11 +335,11 @@
   "eval_days": 60
  },
  "last_run": {
-  "at": "2026-11-20T15:52-05:00",
+  "at": "2026-11-23T19:30-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-20 15:52 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
-   "End of day – already flat."
+   "2026-11-23 19:30 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
+   "Market closed – snapshot only."
   ]
  }
 }
