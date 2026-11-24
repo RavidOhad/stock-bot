@@ -1,7 +1,7 @@
 {
  "version": 2,
  "strategy": "daytrade",
- "generated_at": "2026-11-23T19:30-05:00",
+ "generated_at": "2026-11-24T02:26-05:00",
  "mode": "paper",
  "paused": false,
  "market_open": false,
@@ -47,6 +47,10 @@
   },
   {
    "d": "2026-11-23",
+   "eq": 106338.69
+  },
+  {
+   "d": "2026-11-24",
    "eq": 106338.69
   }
  ],
@@ -314,10 +318,54 @@
  ],
  "candidates": [],
  "actions": [],
+ "diag": [
+  {
+   "date": "2026-11-24",
+   "entries": 0,
+   "market_runs": 0,
+   "first_run": "",
+   "last_run": "",
+   "runs": 0
+  },
+  {
+   "date": "2026-11-23",
+   "entries": 0,
+   "market_runs": 0,
+   "first_run": "",
+   "last_run": "",
+   "runs": 0
+  },
+  {
+   "date": "2026-11-20",
+   "entries": 0,
+   "market_runs": 0,
+   "first_run": "",
+   "last_run": "",
+   "runs": 0
+  },
+  {
+   "date": "2026-11-19",
+   "entries": 0,
+   "market_runs": 0,
+   "first_run": "",
+   "last_run": "",
+   "runs": 0
+  },
+  {
+   "date": "2026-11-18",
+   "entries": 0,
+   "market_runs": 0,
+   "first_run": "",
+   "last_run": "",
+   "runs": 0
+  }
+ ],
  "rules": {
   "paused": false,
   "mode": "paper",
   "strategy": "daytrade",
+  "market_filter": "soft",
+  "market_max_drop": 0.005,
   "opening_range_min": 30,
   "no_new_entries_min_before_close": 90,
   "flatten_min_before_close": 20,
@@ -329,16 +377,16 @@
   "reward_risk": 2.0,
   "min_stop_pct": 0.005,
   "max_stop_pct": 0.025,
-  "max_chase": 0.015,
+  "max_chase": 0.02,
   "min_price": 10,
   "min_iex_dollar_volume": 1000000,
   "eval_days": 60
  },
  "last_run": {
-  "at": "2026-11-23T19:30-05:00",
+  "at": "2026-11-24T02:26-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-23 19:30 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
+   "2026-11-24 02:26 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
    "Market closed – snapshot only."
   ]
  }
