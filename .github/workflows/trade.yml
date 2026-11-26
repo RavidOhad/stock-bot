@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: trading-bot
-  cancel-in-progress: false
+  cancel-in-progress: true   # a stuck run is cancelled by the next one (normal runs finish in under a minute)
 
 jobs:
   trade:
