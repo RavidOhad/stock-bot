@@ -94,6 +94,31 @@ class Alpaca:
         return out
 
 
+# Built-in defaults: config.json only needs the values you want to change.
+DEFAULTS = {
+    "paused": False,
+    "mode": "paper",
+    "strategy": "daytrade",
+    "market_filter": "soft",
+    "market_max_drop": 0.005,
+    "opening_range_min": 30,
+    "no_new_entries_min_before_close": 90,
+    "flatten_min_before_close": 20,
+    "risk_per_trade": 0.005,
+    "max_position_pct": 0.2,
+    "max_open": 5,
+    "max_trades_per_day": 8,
+    "daily_loss_limit": 0.02,
+    "reward_risk": 2.0,
+    "min_stop_pct": 0.005,
+    "max_stop_pct": 0.025,
+    "max_chase": 0.02,
+    "min_price": 10,
+    "min_iex_dollar_volume": 1000000,
+    "eval_days": 60
+}
+
+
 # ---------------------------------------------------------------- helpers
 def load_json(path, default):
     try:
@@ -532,7 +557,13 @@ def check_keys(key, secret, base):
 def main():
     argparse.ArgumentParser().parse_args()
     key, secret = clean_key(os.environ.get("ALPACA_KEY_ID")), clean_key(os.environ.get("ALPACA_SECRET_KEY"))
-    cfg = load_json(CONFIG, {})
+    user_cfg = load_json(CONFIG, {})
+    cfg = dict(DEFAULTS)
+    if user_cfg.get("strategy") == "daytrade":
+        cfg.update({k: v for k, v in user_cfg.items() if k in DEFAULTS})
+    else:   # old or broken config.json: keep only the safety switches
+        cfg.update({k: user_cfg[k] for k in ("paused", "mode") if k in user_cfg})
+        print("note: config.json is not a day-trading config – using built-in rules")
     live = cfg.get("mode") == "live" and os.environ.get("ALPACA_LIVE_CONFIRM") == "I-UNDERSTAND"
     base = LIVE if live else PAPER
     check_keys(key, secret, base)
