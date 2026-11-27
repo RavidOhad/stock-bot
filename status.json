@@ -1,11 +1,11 @@
 {
  "version": 2,
  "strategy": "daytrade",
- "generated_at": "2026-11-26T03:13-05:00",
+ "generated_at": "2026-11-27T11:40-05:00",
  "mode": "paper",
  "paused": false,
- "market_open": false,
- "next_open": "2026-11-27T09:30:00-05:00",
+ "market_open": true,
+ "next_open": "2026-11-30T09:30:00-05:00",
  "account": {
   "equity": 106338.69,
   "cash": 106338.69,
@@ -59,6 +59,10 @@
   },
   {
    "d": "2026-11-26",
+   "eq": 106338.69
+  },
+  {
+   "d": "2026-11-27",
    "eq": 106338.69
   }
  ],
@@ -324,9 +328,189 @@
    "exit_reason": "מעבר למסחר יומי"
   }
  ],
- "candidates": [],
+ "candidates": [
+  {
+   "symbol": "SIMO",
+   "name": "Silicon Motion",
+   "group": "US",
+   "price": 147.25,
+   "chg": 0.07075334496800467,
+   "rs": 0.058789369440090056,
+   "or_high": 145.38,
+   "or_low": 139.1,
+   "vwap": 143.52,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "MU",
+   "name": "Micron Technology",
+   "group": "US",
+   "price": 639.98,
+   "chg": 0.06592271818787476,
+   "rs": 0.053958742659960146,
+   "or_high": 630.5,
+   "or_low": 607.43,
+   "vwap": 625.86,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "SHOP",
+   "name": "Shopify",
+   "group": "US",
+   "price": 142.03,
+   "chg": 0.06505192906152768,
+   "rs": 0.053087953533613064,
+   "or_high": 142.02,
+   "or_low": 139.04,
+   "vwap": 141.28,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "ALAB",
+   "name": "Astera Labs",
+   "group": "US",
+   "price": 201.33,
+   "chg": 0.05963157894736848,
+   "rs": 0.04766760341945386,
+   "or_high": 199.75,
+   "or_low": 188.14,
+   "vwap": 196.38,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "PLTR",
+   "name": "Palantir",
+   "group": "US",
+   "price": 172.58,
+   "chg": 0.054954459319029425,
+   "rs": 0.04299048379111481,
+   "or_high": 170.99,
+   "or_low": 164.9,
+   "vwap": 169.54,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "PGY",
+   "name": "Pagaya Technologies",
+   "group": "IL",
+   "price": 15.05,
+   "chg": 0.052061495457721874,
+   "rs": 0.04009751992980726,
+   "or_high": 14.82,
+   "or_low": 14.46,
+   "vwap": 14.92,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "AVAV",
+   "name": "AeroVironment",
+   "group": "US",
+   "price": 95.92,
+   "chg": 0.0507202716766173,
+   "rs": 0.038756296148702685,
+   "or_high": 95.7,
+   "or_low": 93.19,
+   "vwap": 95.85,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "EXTR",
+   "name": "Extreme Networks",
+   "group": "US",
+   "price": 25.44,
+   "chg": 0.04820766378244756,
+   "rs": 0.036243688254532946,
+   "or_high": 25.24,
+   "or_low": 24.8,
+   "vwap": 25.16,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "ON",
+   "name": "ON Semiconductor",
+   "group": "US",
+   "price": 65.38,
+   "chg": 0.04658235953257561,
+   "rs": 0.034618384004660996,
+   "or_high": 64.22,
+   "or_low": 62.67,
+   "vwap": 64.65,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "RBRK",
+   "name": "Rubrik",
+   "group": "US",
+   "price": 112.58,
+   "chg": 0.04298485339756364,
+   "rs": 0.03102087786964902,
+   "or_high": 111.05,
+   "or_low": 107.33,
+   "vwap": 110.66,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "MPWR",
+   "name": "Monolithic Power Systems",
+   "group": "US",
+   "price": 1240.51,
+   "chg": 0.03908798880926745,
+   "rs": 0.027124013281352832,
+   "or_high": 1229.64,
+   "or_low": 1194.51,
+   "vwap": 1219.6,
+   "breakout": true,
+   "signal": true
+  },
+  {
+   "symbol": "AMZN",
+   "name": "Amazon",
+   "group": "US",
+   "price": 253.31,
+   "chg": 0.036753570990054385,
+   "rs": 0.02478959546213977,
+   "or_high": 251.35,
+   "or_low": 248.49,
+   "vwap": 252.09,
+   "breakout": true,
+   "signal": true
+  }
+ ],
  "actions": [],
  "diag": [
+  {
+   "date": "2026-11-27",
+   "entries": 0,
+   "market_runs": 1,
+   "first_run": "11:40",
+   "last_run": "11:40",
+   "runs": 1,
+   "last": "11:40",
+   "spy_chg": 0.012,
+   "spy_vs_vwap": 0.0025,
+   "max_signals": 40,
+   "funnel": {
+    "liquid": 168,
+    "with_data": 166,
+    "breakout": 61,
+    "above_vwap": 59,
+    "stronger": 47,
+    "not_chasing": 40,
+    "signals": 40
+   },
+   "block": "שעה וחצי אחרונה – בלי כניסות חדשות",
+   "first_signal": "11:40"
+  },
   {
    "date": "2026-11-26",
    "entries": 0,
@@ -374,14 +558,6 @@
    "first_run": "",
    "last_run": "",
    "runs": 0
-  },
-  {
-   "date": "2026-11-18",
-   "entries": 0,
-   "market_runs": 0,
-   "first_run": "",
-   "last_run": "",
-   "runs": 0
   }
  ],
  "rules": {
@@ -407,11 +583,13 @@
   "eval_days": 60
  },
  "last_run": {
-  "at": "2026-11-26T03:13-05:00",
+  "at": "2026-11-27T11:40-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-26 03:13 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
-   "Market closed – snapshot only."
+   "2026-11-27 11:40 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
+   "Too close to the close for new entries.",
+   "Daily filter: 168 liquid stocks ≥ $10",
+   "Funnel: liquid 168, with_data 166, breakout 61, above_vwap 59, stronger 47, not_chasing 40, signals 40"
   ]
  }
 }
