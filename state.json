@@ -300,12 +300,12 @@
   }
  ],
  "last_run": {
-  "at": "2026-11-27T12:20-05:00",
+  "at": "2026-11-27T12:30-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-27 12:20 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
+   "2026-11-27 12:30 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
    "Too close to the close for new entries.",
-   "Funnel: liquid 168, with_data 166, breakout 59, above_vwap 58, stronger 42, not_chasing 35, signals 35"
+   "Funnel: liquid 168, with_data 166, breakout 62, above_vwap 62, stronger 48, not_chasing 42, signals 42"
   ]
  },
  "swing_trades": [
@@ -457,22 +457,23 @@
     "11:50",
     "12:00",
     "12:10",
-    "12:20"
+    "12:20",
+    "12:30"
    ],
    "diag": {
-    "runs": 6,
-    "last": "12:20",
-    "spy_chg": 0.0136,
-    "spy_vs_vwap": 0.0031,
-    "max_signals": 41,
+    "runs": 7,
+    "last": "12:30",
+    "spy_chg": 0.0141,
+    "spy_vs_vwap": 0.0035,
+    "max_signals": 42,
     "funnel": {
      "liquid": 168,
      "with_data": 166,
-     "breakout": 59,
-     "above_vwap": 58,
-     "stronger": 42,
-     "not_chasing": 35,
-     "signals": 35
+     "breakout": 62,
+     "above_vwap": 62,
+     "stronger": 48,
+     "not_chasing": 42,
+     "signals": 42
     },
     "block": "שעה וחצי אחרונה – בלי כניסות חדשות",
     "first_signal": "11:40"
