@@ -300,10 +300,10 @@
   }
  ],
  "last_run": {
-  "at": "2026-11-27T13:30-05:00",
+  "at": "2026-11-27T13:40-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-27 13:30 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
+   "2026-11-27 13:40 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market closed",
    "Market closed – snapshot only."
   ]
  },
