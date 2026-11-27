@@ -1,7 +1,7 @@
 {
  "version": 2,
  "strategy": "daytrade",
- "generated_at": "2026-11-27T12:30-05:00",
+ "generated_at": "2026-11-27T12:40-05:00",
  "mode": "paper",
  "paused": false,
  "market_open": true,
@@ -328,172 +328,15 @@
    "exit_reason": "מעבר למסחר יומי"
   }
  ],
- "candidates": [
-  {
-   "symbol": "EGO",
-   "name": "Eldorado Gold",
-   "group": "US",
-   "price": 29.97,
-   "chg": 0.08390596745027135,
-   "rs": 0.06976545526654943,
-   "or_high": 29.96,
-   "or_low": 29.05,
-   "vwap": 29.74,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "SIMO",
-   "name": "Silicon Motion",
-   "group": "US",
-   "price": 146.99,
-   "chg": 0.06886271087841767,
-   "rs": 0.054722198694695745,
-   "or_high": 145.38,
-   "or_low": 139.1,
-   "vwap": 144.47,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "MU",
-   "name": "Micron Technology",
-   "group": "US",
-   "price": 638.88,
-   "chg": 0.06409060626249174,
-   "rs": 0.049950094078769824,
-   "or_high": 630.5,
-   "or_low": 607.43,
-   "vwap": 629.5,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "OKLO",
-   "name": "Oklo",
-   "group": "US",
-   "price": 20.56,
-   "chg": 0.0543589743589743,
-   "rs": 0.04021846217525238,
-   "or_high": 20.25,
-   "or_low": 19.56,
-   "vwap": 20.35,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "EXTR",
-   "name": "Extreme Networks",
-   "group": "US",
-   "price": 25.52,
-   "chg": 0.0517099299546766,
-   "rs": 0.03756941777095468,
-   "or_high": 25.24,
-   "or_low": 24.8,
-   "vwap": 25.24,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "PLTR",
-   "name": "Palantir",
-   "group": "US",
-   "price": 171.72,
-   "chg": 0.04969741426737562,
-   "rs": 0.035556902083653696,
-   "or_high": 170.99,
-   "or_low": 164.9,
-   "vwap": 170.07,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "PGY",
-   "name": "Pagaya Technologies",
-   "group": "IL",
-   "price": 14.98,
-   "chg": 0.046820405310971314,
-   "rs": 0.03267989312724939,
-   "or_high": 14.82,
-   "or_low": 14.46,
-   "vwap": 14.95,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "ON",
-   "name": "ON Semiconductor",
-   "group": "US",
-   "price": 65.3,
-   "chg": 0.04530174483752192,
-   "rs": 0.031161232653799997,
-   "or_high": 64.22,
-   "or_low": 62.67,
-   "vwap": 64.85,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "AMZN",
-   "name": "Amazon",
-   "group": "US",
-   "price": 254.75,
-   "chg": 0.042647239389350444,
-   "rs": 0.028506727205628524,
-   "or_high": 251.35,
-   "or_low": 248.49,
-   "vwap": 252.64,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "MTCH",
-   "name": "Match Group",
-   "group": "US",
-   "price": 42.74,
-   "chg": 0.041423001949317806,
-   "rs": 0.027282489765595885,
-   "or_high": 42.09,
-   "or_low": 41.44,
-   "vwap": 42.27,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "RBRK",
-   "name": "Rubrik",
-   "group": "US",
-   "price": 112.3,
-   "chg": 0.04034461994534255,
-   "rs": 0.026204107761620632,
-   "or_high": 111.05,
-   "or_low": 107.33,
-   "vwap": 110.95,
-   "breakout": true,
-   "signal": true
-  },
-  {
-   "symbol": "MPWR",
-   "name": "Monolithic Power Systems",
-   "group": "US",
-   "price": 1240.53,
-   "chg": 0.03910474140277831,
-   "rs": 0.02496422921905639,
-   "or_high": 1229.64,
-   "or_low": 1194.51,
-   "vwap": 1224.28,
-   "breakout": true,
-   "signal": true
-  }
- ],
+ "candidates": [],
  "actions": [],
  "diag": [
   {
    "date": "2026-11-27",
    "entries": 0,
-   "market_runs": 7,
+   "market_runs": 8,
    "first_run": "11:40",
-   "last_run": "12:30",
+   "last_run": "12:40",
    "runs": 7,
    "last": "12:30",
    "spy_chg": 0.0141,
@@ -583,12 +426,11 @@
   "eval_days": 60
  },
  "last_run": {
-  "at": "2026-11-27T12:30-05:00",
+  "at": "2026-11-27T12:40-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-27 12:30 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
-   "Too close to the close for new entries.",
-   "Funnel: liquid 168, with_data 166, breakout 62, above_vwap 62, stronger 48, not_chasing 42, signals 42"
+   "2026-11-27 12:40 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
+   "End of day – already flat."
   ]
  }
 }

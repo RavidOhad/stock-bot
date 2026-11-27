@@ -300,12 +300,11 @@
   }
  ],
  "last_run": {
-  "at": "2026-11-27T12:30-05:00",
+  "at": "2026-11-27T12:40-05:00",
   "log": [
    "=== day-trading run on PAPER ===",
-   "2026-11-27 12:30 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
-   "Too close to the close for new entries.",
-   "Funnel: liquid 168, with_data 166, breakout 62, above_vwap 62, stronger 48, not_chasing 42, signals 42"
+   "2026-11-27 12:40 NY | equity $106,338.69 cash $106,338.69 | open positions 0 | market OPEN",
+   "End of day – already flat."
   ]
  },
  "swing_trades": [
@@ -458,7 +457,8 @@
     "12:00",
     "12:10",
     "12:20",
-    "12:30"
+    "12:30",
+    "12:40"
    ],
    "diag": {
     "runs": 7,
